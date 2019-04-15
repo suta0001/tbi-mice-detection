@@ -73,9 +73,9 @@ for fold in range(10):
     num_features = len(train_epochs[0])
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(8 * num_features, input_dim=num_features,
-                              activation=tf.nn.tanh),
-        tf.keras.layers.Dense(8 * num_features, activation=tf.nn.tanh),
-        tf.keras.layers.Dense(6, activation=tf.nn.softmax)
+                              activation=tf.nn.leaky_relu),
+        tf.keras.layers.Dense(8 * num_features, activation=tf.nn.leaky_relu),
+        tf.keras.layers.Dense(4, activation=tf.nn.softmax)
     ])
 
     # compile the model

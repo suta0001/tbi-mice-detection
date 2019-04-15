@@ -76,7 +76,7 @@ for fold in range(10):
                               activation=tf.nn.leaky_relu),
         tf.keras.layers.Dense(4 * num_features, activation=tf.nn.leaky_relu),
         tf.keras.layers.Dense(2 * num_features, activation=tf.nn.leaky_relu),
-        tf.keras.layers.Dense(6, activation=tf.nn.softmax)
+        tf.keras.layers.Dense(4, activation=tf.nn.softmax)
     ])
 
     # compile the model
