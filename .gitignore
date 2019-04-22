@@ -5,4 +5,6 @@ __pycache__
 *.json
 *.sh
 data
+logs
+run_scripts
 

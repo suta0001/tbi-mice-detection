@@ -21,7 +21,8 @@ for edf_file in edf_files:
     stage_filename = stage_path + species + '_Stages.csv'
     eeg_epochs, stage_epochs = sd.create_epochs(eeg_epoch_width_in_s,
                                                 edf_filename,
-                                                stage_filename)
+                                                stage_filename,
+                                                num_classes)
     template = '{0}_ew{1}.csv'
     common_labels = [str(eeg_epoch_width_in_s)]
     output_filename = template.format(species + '_eeg', *common_labels)

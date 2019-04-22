@@ -36,7 +36,7 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
         elif stages[i] == 'R':
             if num_classes == 4:
                 stages[i] = 1 + offset
-            elif num_classes = 6:
+            elif num_classes == 6:
                 stages[i] = 2 + offset
         else:
             stages[i] = -1
@@ -54,6 +54,8 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
             stage_epochs.append([0 + offset])
         elif stages_temp.count(1 + offset) == num_stages:
             stage_epochs.append([1 + offset])
+        elif stages_temp.count(2 + offset) == num_stages:
+            stage_epochs.append([2 + offset])
         else:
             stage_epochs.append([-1])
 
