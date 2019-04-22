@@ -3,7 +3,7 @@ import pyedflib
 
 
 def create_epochs(time_window_in_s=4, edf_filename=None,
-                  stage_filename=None):
+                  stage_filename=None, num_classes=4):
     # check for time window validity -- only multiple of 4 s is allowed
     if time_window_in_s % 4 != 0:
         print('Time window must be a multiple of 4 seconds.')
@@ -14,21 +14,30 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     eeg_signal = edf_file.readSignal(0)
 
     # read sleep stages from CSV file
-    # for Sham* subjects: W -> 0, NR -> 1, R -> 1
-    # for TBI* subjects: W -> 2, NR -> 3, R -> 3
+    # class codes are assigned as follows:
+    # 2-class: 0 = Sham, 1 = TBI
+    # 4-class: 0 = Sham W, 1 = Sham NR and R
+    #          2 = TBI W, 3 = TBI NR and R
+    # 6-class: 0 = Sham W, 1 = Sham NR, 2 = Sham R
+    #          3 = TBI W, 4 = TBI NR, 5 = TBI R      
     stage_file = open(stage_filename)
     for i in range(3):
         line = stage_file.readline()
     if 'SHAM' in line:
         offset = 0
-    else:
-        offset = 2
+    else: 
+        offset = num_classes // 2 
     stages = [line.split(',')[2] for line in stage_file.readlines()[22:21623]]
     for i in range(len(stages)):
-        if stages[i] == 'W':
+        if stages[i] == 'W' or num_classes == 2:
             stages[i] = 0 + offset
-        elif stages[i] == 'NR' or stages[i] == 'R':
+        elif stages[i] == 'NR':
             stages[i] = 1 + offset
+        elif stages[i] == 'R':
+            if num_classes == 4:
+                stages[i] = 1 + offset
+            elif num_classes = 6:
+                stages[i] = 2 + offset
         else:
             stages[i] = -1
 

@@ -5,11 +5,12 @@ import sys
 
 # parameter to be varied
 eeg_epoch_width_in_s = int(sys.argv[1])
+num_classes = int(sys.argv[2])
 
 # set up file location paths
 edf_path = 'data/edf/'
 stage_path = 'data/sleep_staging/'
-epochs_path = 'data/epochs/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classees))
 
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
