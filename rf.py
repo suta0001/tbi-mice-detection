@@ -17,7 +17,7 @@ feature_type = sys.argv[3]
 pe_orders = list(range(3, 8))
 pe_delays = list(range(1, 11))
 max_degree = 11
-eeg_source = sys.argv[1] 
+eeg_source = sys.argv[1]
 num_classes = int(sys.argv[4])
 if num_classes == 2:
     target_names = ['Sham', 'TBI']
@@ -30,12 +30,12 @@ elif num_classes == 6:
 accuracies = []
 reports = []
 template = None
-common_labels = None 
+common_labels = None
 
 for fold in range(10):
     common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold)]
-    cv_path = 'data/cv/'
-    if feature_type == 'pe': 
+    cv_path = 'data/cv_{0}c/'.format(str(num_classes))
+    if feature_type == 'pe':
         template = '{0}_{1}_ew{2}_f{3}_{4}t{5}_{6}t{7}.csv'
         common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold),
                          str(pe_orders[0]), str(pe_orders[-1]),
@@ -43,7 +43,7 @@ for fold in range(10):
     elif feature_type == 'vg':
         template = '{0}_{1}_ew{2}_f{3}_{4}.csv'
         common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold),
-                         str(max_degree)] 
+                         str(max_degree)]
     elif feature_type == 'sp':
         template = '{0}_{1}_ew{2}_f{3}_sp.csv'
     elif feature_type == 'ti':
@@ -110,7 +110,6 @@ for name in target_names:
     print('Mean  prec ' + name + '  = ' + str(statistics.mean(precisions)))
     print('Stdev prec ' + name + '  = ' + str(statistics.stdev(precisions)))
 for name in target_names:
-    recalls = [reports[i][name]['recall'] for i in range(len(reports))] 
+    recalls = [reports[i][name]['recall'] for i in range(len(reports))]
     print('Mean  recll ' + name + ' = ' + str(statistics.mean(recalls)))
-    print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls))) 
-
+    print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
