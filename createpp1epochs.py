@@ -6,9 +6,10 @@ import sys
 
 # parameter to be varied
 eeg_epoch_width_in_s = int(sys.argv[1])
+num_classes = int(sys.argv[2])
 
 # set up file location paths
-epochs_path = 'data/epochs/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
 epochs_files = [file for file in os.listdir(epochs_path) if
                 '_eeg_ew{0}'.format(eeg_epoch_width_in_s) in file]
 for epochs_file in epochs_files:
