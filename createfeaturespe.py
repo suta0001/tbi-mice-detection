@@ -6,14 +6,15 @@ import sourcedata as sd
 import sys
 
 # parameter to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
+eeg_epoch_width_in_s = int(sys.argv[2])
 pe_orders = list(range(3, 8))
 pe_delays = list(range(1, 11))
-eeg_source = 'pp2'
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up file location paths
-epochs_path = 'data/epochs/'
-pe_path = 'data/pe/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+pe_path = 'data/pe_{0}c/'.format(str(num_classes))
 
 epochs_files = [file for file in os.listdir(epochs_path) if
                 '_{0}_ew{1}'.format(eeg_source, eeg_epoch_width_in_s) in file]
@@ -33,7 +34,7 @@ for epochs_file in epochs_files:
             for order in pe_orders:
                 for delay in pe_delays:
                     feature.append(entropy.permutation_entropy(eeg_epoch,
-                                   order, delay))
+                                   order, delay, normalize=True))
             eeg_epochs.append(feature)
     # write features
     template = '{0}_{1}_ew{2}_{3}t{4}_{5}t{6}.csv'
