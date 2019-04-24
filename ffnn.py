@@ -10,13 +10,19 @@ import tensorflow as tf
 
 
 # parameters to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
-feature_type = sys.argv[2]
+eeg_epoch_width_in_s = int(sys.argv[2])
+feature_type = sys.argv[3]
 pe_orders = list(range(3, 8))
 pe_delays = list(range(1, 11))
 max_degree = 11
-eeg_source = 'pp2'
-target_names = ['SW', 'SS', 'TW', 'TS']
+eeg_source = sys.argv[1] 
+num_classes = int(sys.argv[4])
+if num_classes == 2:
+    target_names = ['Sham', 'TBI']
+elif num_classes == 4:
+    target_names = ['SW', 'SS', 'TW', 'TS']
+elif num_classes == 6:
+    target_names = ['SW', 'SN', 'SR', 'TW', 'TN', 'TR']
 
 # read dataset per fold
 accuracies = []
@@ -84,8 +90,8 @@ for fold in range(10):
                   metrics=['accuracy'])
 
     # train the model
-    batch_size = 16
-    model.fit(train_epochs, train_labels, batch_size, epochs=50, verbose=0)
+    batch_size = 8 
+    model.fit(train_epochs, train_labels, batch_size, epochs=50, verbose=2)
 
     # evaluate accuracy
     test_loss, test_acc = model.evaluate(test_epochs, test_labels)
