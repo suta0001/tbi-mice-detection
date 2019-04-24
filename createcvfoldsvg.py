@@ -4,14 +4,15 @@ import sourcedata as sd
 import sys
 
 # parameters to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
+eeg_epoch_width_in_s = int(sys.argv[2])
 max_degree = 11
-eeg_source = 'pp2'
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up dataset folds for cross-validation
-epochs_path = 'data/epochs/'
-vg_path = 'data/vg/'
-cv_path = 'data/cv/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+vg_path = 'data/vg_{0}c/'.format(str(num_classes))
+cv_path = 'data/cv_{0}c/'.format(str(num_classes))
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 vg_template = '{0}_{1}_ew{2}_{3}.csv'
 vg_common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(max_degree)]

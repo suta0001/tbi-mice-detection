@@ -8,13 +8,14 @@ import visibilitygraphs as vg
 
 
 # parameter to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
+eeg_epoch_width_in_s = int(sys.argv[2])
 max_degree = 11
-eeg_source = 'pp2'
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up file location paths
-epochs_path = 'data/epochs/'
-vg_path = 'data/vg/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+vg_path = 'data/vg_{0}c/'.format(str(num_classes))
 
 epochs_files = [file for file in os.listdir(epochs_path) if
                 '_{0}_ew{1}'.format(eeg_source, eeg_epoch_width_in_s) in file]
