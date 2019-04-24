@@ -13,7 +13,7 @@ import sys
 
 # parameters to be varied
 eeg_epoch_width_in_s = int(sys.argv[2])
-feature_type = sys.argv[2]
+feature_type = sys.argv[3]
 pe_orders = list(range(3, 8))
 pe_delays = list(range(1, 11))
 max_degree = 11
