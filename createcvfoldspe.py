@@ -4,15 +4,16 @@ import sourcedata as sd
 import sys
 
 # parameters to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
+eeg_epoch_width_in_s = int(sys.argv[2])
 pe_orders = list(range(3, 8))
 pe_delays = list(range(1, 11))
-eeg_source = 'pp2'
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up dataset folds for cross-validation
-epochs_path = 'data/epochs/'
-pe_path = 'data/pe/'
-cv_path = 'data/cv/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+pe_path = 'data/pe_{0}c/'.format(str(num_classes))
+cv_path = 'data/cv_{0}c/'.format(str(num_classes))
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 pe_template = '{0}_{1}_ew{2}_{3}t{4}_{5}t{6}.csv'
 pe_common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(pe_orders[0]),
