@@ -1,5 +1,6 @@
 import csv
 import extractfeatures as ef
+import math
 import numpy as np
 import os
 from scipy.stats import kurtosis
@@ -10,12 +11,13 @@ import statistics
 import sys
 
 # parameter to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
-eeg_source = 'pp2'
+eeg_epoch_width_in_s = int(sys.argv[2])
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up file location paths
-epochs_path = 'data/epochs/'
-spectral_path = 'data/spectral/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+spectral_path = 'data/spectral_{0}c/'.format(str(num_classes))
 
 # define frequency bands
 eeg_bands = {
@@ -44,8 +46,9 @@ for epochs_file in epochs_files:
             feature = []
             f, psd = sa.calc_psd(data, 256)
             total_power = sa.calc_bandpower(psd, f, f[0], f[-1])
-            power = [sa.calc_bandpower(psd, f, eeg_bands[band][0],
-                     eeg_bands[band][1]) for band in bands]
+            power = [20.0 * math.log10(sa.calc_bandpower(psd, f,
+                     eeg_bands[band][0], eeg_bands[band][1]) /
+                     1000.0) for band in bands]
             rel_power = [power[i] / total_power for i in range(len(power))]
             feature.extend(power)
             feature.extend(rel_power)
@@ -71,8 +74,8 @@ for epochs_file in epochs_files:
             feature.append(sa.calc_edge_frequency(psd, f, 0.50))
             feature.append(f[np.argmax(psd)])
             feature.append(sa.calc_spectral_entropy(psd))
-            feature.append(statistics.mean(psd))
-            feature.append(statistics.variance(psd))
+            feature.append(20.0 * math.log10(statistics.mean(psd) / 1000.0))
+            feature.append(20.0 * math.log10(statistics.variance(psd) / 1.0e6))
             feature.append(skew(psd))
             feature.append(kurtosis(psd))
             eeg_epochs.append(feature)
