@@ -6,12 +6,13 @@ import sys
 
 
 # parameter to be varied
-eeg_epoch_width_in_s = int(sys.argv[1])
-eeg_source = 'pp2'
+eeg_epoch_width_in_s = int(sys.argv[2])
+eeg_source = sys.argv[1]
+num_classes = int(sys.argv[3])
 
 # set up file location paths
-epochs_path = 'data/epochs/'
-sxx_path = 'data/spectrogram/'
+epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+sxx_path = 'data/spectrogram_{0}c/'.format(str(num_classes))
 
 epochs_files = [file for file in os.listdir(epochs_path) if
                 '_{0}_ew{1}'.format(eeg_source, eeg_epoch_width_in_s) in file]
@@ -32,6 +33,7 @@ for epochs_file in epochs_files:
         data = np.asarray(row, dtype=float)
         f, t, Sxx = spectrogram(data, 256.0)
         Sxx = Sxx[0:41, :].flatten()
+        Sxx = Sxx / np.amax(Sxx)
         filewriter.writerow(Sxx)
     # close files
     sourcefile.close()
