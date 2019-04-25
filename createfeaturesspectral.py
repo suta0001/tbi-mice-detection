@@ -46,11 +46,12 @@ for epochs_file in epochs_files:
             feature = []
             f, psd = sa.calc_psd(data, 256)
             total_power = sa.calc_bandpower(psd, f, f[0], f[-1])
-            power = [20.0 * math.log10(sa.calc_bandpower(psd, f,
-                     eeg_bands[band][0], eeg_bands[band][1]) /
-                     1000.0) for band in bands]
+            power = [sa.calc_bandpower(psd, f, eeg_bands[band][0], 
+                     eeg_bands[band][1]) for band in bands]
+            power_dBm = [20.0 * math.log10(power[i] / 1000.0) for i in 
+                         range(len(power))]
             rel_power = [power[i] / total_power for i in range(len(power))]
-            feature.extend(power)
+            feature.extend(power_dBm)
             feature.extend(rel_power)
             feature.append(rel_power[0] / rel_power[1])
             feature.append(rel_power[0] / rel_power[2])
@@ -84,3 +85,4 @@ for epochs_file in epochs_files:
     common_labels = [eeg_source, str(eeg_epoch_width_in_s)]
     output_filename = template.format(species, *common_labels)
     sd.write_data(spectral_path + output_filename, eeg_epochs)
+
