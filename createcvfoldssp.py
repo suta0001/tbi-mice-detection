@@ -5,13 +5,13 @@ import sys
 
 # parameters to be varied
 eeg_epoch_width_in_s = int(sys.argv[2])
-eeg_source = sys.argv[1] 
+eeg_source = sys.argv[1]
 num_classes = int(sys.argv[3])
 
 # set up dataset folds for cross-validation
 epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
-spectral_path = 'data/spectral/'
-cv_path = 'data/cv/'
+spectral_path = 'data/spectral_{0}c/'.format(str(num_classes))
+cv_path = 'data/cv_{0}c/'.format(str(num_classes))
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 spectral_template = '{0}_{1}_ew{2}.csv'
 spectral_common_labels = [eeg_source, str(eeg_epoch_width_in_s)]
