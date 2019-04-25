@@ -90,7 +90,9 @@ for fold in range(10):
     test_labels = column_or_1d(np.array(temp_labels, dtype=int))
 
     # define classifier
-    clf = RandomForestClassifier(n_estimators=100)
+    clf = RandomForestClassifier(n_estimators=100,
+                                 bootstrap=False,
+                                 class_weight='balanced')
 
     # train classifier
     clf.fit(train_epochs, train_labels)
