@@ -22,7 +22,7 @@ for fold, dataset_fold in enumerate(dataset_folds):
     train_epochs = []
     train_labels = []
     print('Processing fold ' + str(fold) + '...')
-    for i in [0, 1, 2, 4, 5]:
+    for i in range(7):
         eeg_epochs = []
         stage_epochs = []
         print('Processing training set: ' + dataset_fold[i] + '...')
@@ -35,22 +35,6 @@ for fold, dataset_fold in enumerate(dataset_folds):
         sd.read_data(epochs_path + input_filename, stage_epochs)
         train_epochs.extend(eeg_epochs)
         train_labels.extend(stage_epochs)
-    # process validation set
-    val_epochs = []
-    val_labels = []
-    for i in [3, 6]:
-        eeg_epochs = []
-        stage_epochs = []
-        print('Processing validation set: ' + dataset_fold[i] + '...')
-        input_filename = epoch_template.format(dataset_fold[i] + '_BL5_' +
-                                               eeg_source,
-                                               *epoch_common_labels)
-        sd.read_data(epochs_path + input_filename, eeg_epochs)
-        input_filename = epoch_template.format(dataset_fold[i] + '_BL5_labels',
-                                               *epoch_common_labels)
-        sd.read_data(epochs_path + input_filename, stage_epochs)
-        val_epochs.extend(eeg_epochs)
-        val_labels.extend(stage_epochs)
     # process testing set
     test_epochs = []
     test_labels = []
@@ -74,10 +58,6 @@ for fold, dataset_fold in enumerate(dataset_folds):
     sd.write_data(cv_path + output_filename, train_epochs)
     output_filename = cv_template.format('train_labels', *cv_common_labels)
     sd.write_data(cv_path + output_filename, train_labels)
-    output_filename = cv_template.format('val_data', *cv_common_labels)
-    sd.write_data(cv_path + output_filename, val_epochs)
-    output_filename = cv_template.format('val_labels', *cv_common_labels)
-    sd.write_data(cv_path + output_filename, val_labels)
     output_filename = cv_template.format('test_data', *cv_common_labels)
     sd.write_data(cv_path + output_filename, test_epochs)
     output_filename = cv_template.format('test_labels', *cv_common_labels)
