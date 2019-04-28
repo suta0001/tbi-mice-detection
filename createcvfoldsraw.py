@@ -38,7 +38,6 @@ for fold, dataset_fold in enumerate(dataset_folds):
     # process validation set
     val_epochs = []
     val_labels = []
-    print('Processing fold ' + str(fold) + '...')
     for i in [3, 6]:
         eeg_epochs = []
         stage_epochs = []
