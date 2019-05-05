@@ -29,7 +29,7 @@ reports = []
 template = '{0}_{1}_ew{2}_f{3}.csv'
 common_labels = None
 
-for fold in range(2):
+for fold in range(1):
     common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold)]
     cv_path = 'data/cv_{0}c/'.format(str(num_classes))
     train_epochs = []
@@ -59,19 +59,19 @@ for fold in range(2):
     # setup the model
     # model is based on Ordonez et al., 2016,
     # http://dx.doi.org/10.3390/s16010115
-    filters = [4, 4, 4]
+    filters = [64, 64, 64, 64]
     l2 = tf.keras.regularizers.l2
     reg_rate = 0.01
     kinitializer = 'lecun_uniform'
     num_tsteps = train_epochs.shape[1]
-    lstm_dimensions = [4, 4, 4]
+    lstm_dimensions = [128, 128]
     model = tf.keras.Sequential()
     model.add(
         tf.keras.layers.BatchNormalization(input_shape=(num_tsteps, 1)))
     model.add(
         tf.keras.layers.Reshape(target_shape=(num_tsteps, 1, 1)))
     for filter in filters:
-        model.add(tf.keras.layers.Conv2D(filter, kernel_size=(3, 1),
+        model.add(tf.keras.layers.Conv2D(filter, kernel_size=(5, 1),
                                          padding='same',
                                          kernel_regularizer=l2(reg_rate),
                                          kernel_initializer=kinitializer))
@@ -92,7 +92,7 @@ for fold in range(2):
                                      output_shape=[num_classes]))
 
     # define optimizers
-    optimizer = tf.keras.optimizers.Adam(lr=0.0001)
+    optimizer = tf.keras.optimizers.RMSprop(lr=0.001)
 
     # compile the model
     model.compile(optimizer=optimizer,
@@ -100,33 +100,40 @@ for fold in range(2):
                   metrics=['accuracy'])
 
     # set up training parameters
-    batch_size = 32
-    epochs = 100
+    batch_size = 1024 
+    epochs = 200 
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
-    tensorboard.log_dir = 'tb_logs/{}'.format(time())
-    tensorboard.histogram_freq = epochs / 10
-    tensorboard.write_grads = True
-    tensorboard.batch_size = batch_size
-    tensorboard.update_freq = 'epoch'
+    tensorboard.log_dir = 'tb_logs/{0}'.format(time())
+    #tensorboard.histogram_freq = epochs / 1
+    #tensorboard.write_grads = True
+    #tensorboard.batch_size = batch_size
+    #tensorboard.update_freq = 'epoch'
 
+    # load previously saved model
+    if len(sys.argv) == 5:
+        print('loading previous model = ', sys.argv[4])
+        model = tf.keras.models.load_model(sys.argv[4])
+ 
     # train the model
     model.fit(train_epochs, train_labels, batch_size, epochs,
-              validation_data=(test_epochs, test_labels), verbose=0,
+              validation_data=(test_epochs, test_labels), verbose=1,
               callbacks=[tensorboard])
 
     # save model
-    model.save('convlstm_{0}.h5'.format(time()))
+    model.save('models/convlstm_{0}.h5'.format(time()))
 
     # evaluate accuracy
-    test_loss, test_acc = model.evaluate(test_epochs, test_labels)
+    test_loss, test_acc = model.evaluate(test_epochs, test_labels,
+                                         batch_size)
     accuracies.append(test_acc)
     print('Fold = ' + str(fold) + ' Accuracy = ' + str(test_acc))
 
     # calculate confusion matrix
-    predict_labels = model.predict(test_epochs)
+    predict_labels = model.predict(test_epochs, batch_size)
     predict_labels = predict_labels.argmax(axis=1)
+    test_labels = test_labels.argmax(axis=1)
     print(confusion_matrix(test_labels, predict_labels))
 
     # print report
@@ -138,13 +145,15 @@ for fold in range(2):
                                 target_names=target_names))
 
 # print out results summary
-print('Mean  accuracy = ' + str(statistics.mean(accuracies)))
-print('Stdev accuracy = ' + str(statistics.stdev(accuracies)))
-for name in target_names:
-    precisions = [reports[i][name]['precision'] for i in range(len(reports))]
-    print('Mean  prec ' + name + '  = ' + str(statistics.mean(precisions)))
-    print('Stdev prec ' + name + '  = ' + str(statistics.stdev(precisions)))
-for name in target_names:
-    recalls = [reports[i][name]['recall'] for i in range(len(reports))]
-    print('Mean  recll ' + name + ' = ' + str(statistics.mean(recalls)))
-    print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
+if len(accuracies) > 1:
+    print('Mean  accuracy = ' + str(statistics.mean(accuracies)))
+    print('Stdev accuracy = ' + str(statistics.stdev(accuracies)))
+    for name in target_names:
+        precisions = [reports[i][name]['precision'] for i in range(
+            len(reports))]
+        print('Mean  prec ' + name + '  = ' + str(statistics.mean(precisions)))
+        print('Stdev prec ' + name + '  = ' + str(statistics.stdev(precisions)))
+    for name in target_names:
+        recalls = [reports[i][name]['recall'] for i in range(len(reports))]
+        print('Mean  recll ' + name + ' = ' + str(statistics.mean(recalls)))
+        print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
