@@ -12,6 +12,32 @@ import tensorflow as tf
 from time import time
 
 
+def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes):
+    to_cat = tf.keras.utils.to_categorical
+    while True:
+        data_file = open(eeg_data_file, mode='r', newline='')
+        labels_file = open(eeg_labels_file, mode='r', newline='')
+        data_reader = csv.reader(data_file)
+        labels_reader = csv.reader(labels_file)
+        for data, label in zip(data_reader, labels_reader):
+            # convert datasets to numpy arrays
+            eeg_epoch = [float(i) for i in data]
+            eeg_shape = (len(eeg_epoch), 1)
+            eeg_epoch = np.array(eeg_epoch).reshape(eeg_shape)
+            eeg_label = np.array(int(label))
+            eeg_label = to_cat(eeg_label, num_classes=num_classes)
+            yield (eeg_epoch, eeg_label)
+        labels_file.close()
+        data_file.close()
+
+
+def get_num_samples(filename):
+    num_samples = 0
+    with open(filename, mode='r', newline='') as csvfile:
+        filereader = csv.reader(csvfile)
+        num_samples = filereader.line_num
+    return num_samples
+
 # parameters to be varied
 eeg_epoch_width_in_s = int(sys.argv[2])
 eeg_source = sys.argv[1]
@@ -30,31 +56,18 @@ template = '{0}_{1}_ew{2}_f{3}.csv'
 common_labels = None
 
 for fold in range(1):
+    # set up data and label files
     common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold)]
     cv_path = 'data/cv_{0}c/'.format(str(num_classes))
-    train_epochs = []
-    train_labels = []
-    test_epochs = []
-    test_labels = []
-    input_filename = template.format('train_data', *common_labels)
-    sd.read_data(cv_path + input_filename, train_epochs)
-    input_filename = template.format('train_labels', *common_labels)
-    sd.read_data(cv_path + input_filename, train_labels)
-    input_filename = template.format('test_data', *common_labels)
-    sd.read_data(cv_path + input_filename, test_epochs)
-    input_filename = template.format('test_labels', *common_labels)
-    sd.read_data(cv_path + input_filename, test_labels)
+    train_data_file = cv_path + template.format('train_data', *common_labels)
+    train_labels_file = cv_path + template.format('train_labels',
+                                                  *common_labels)
+    test_data_file = cv_path + template.format('test_data', *common_labels)
+    test_labels_file = cv_path + template.format('test_labels', *common_labels)
 
-    # convert datasets to numpy arrays
-    to_cat = tf.keras.utils.to_categorical
-    train_shape = (len(train_epochs), len(train_epochs[0]), 1)
-    train_epochs = np.array(train_epochs).reshape(train_shape)
-    train_labels = np.array(train_labels, dtype=int)
-    train_labels = to_cat(train_labels, num_classes=num_classes)
-    test_shape = (len(test_epochs), len(test_epochs[0]), 1)
-    test_epochs = np.array(test_epochs).reshape(test_shape)
-    test_labels = np.array(test_labels, dtype=int)
-    test_labels = to_cat(test_labels, num_classes=num_classes)
+    # get the total number of samples in training and test sets
+    num_train_samples = get_num_samples(train_labels_file)
+    num_test_samples = get_num_samples(test_labels_file)
 
     # setup the model
     # model is based on Ordonez et al., 2016,
@@ -63,7 +76,7 @@ for fold in range(1):
     l2 = tf.keras.regularizers.l2
     reg_rate = 0.01
     kinitializer = 'lecun_uniform'
-    num_tsteps = train_epochs.shape[1]
+    num_tsteps = eeg_epoch_width_in_s * 1024 / 4
     lstm_dimensions = [128, 128]
     model = tf.keras.Sequential()
     model.add(
@@ -100,38 +113,46 @@ for fold in range(1):
                   metrics=['accuracy'])
 
     # set up training parameters
-    batch_size = 1024 
-    epochs = 200 
+    batch_size = 1024
+    train_steps_per_epoch = num_train_samples / batch_size
+    test_steps_per_epoch = num_test_samples / batch_size
+    epochs = 200
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
     tensorboard.log_dir = 'tb_logs/{0}'.format(time())
-    #tensorboard.histogram_freq = epochs / 1
-    #tensorboard.write_grads = True
-    #tensorboard.batch_size = batch_size
-    #tensorboard.update_freq = 'epoch'
+    # tensorboard.histogram_freq = epochs / 1
+    # tensorboard.write_grads = True
+    # tensorboard.batch_size = batch_size
+    # tensorboard.update_freq = 'epoch'
 
     # load previously saved model
     if len(sys.argv) == 5:
         print('loading previous model = ', sys.argv[4])
         model = tf.keras.models.load_model(sys.argv[4])
- 
+
     # train the model
-    model.fit(train_epochs, train_labels, batch_size, epochs,
-              validation_data=(test_epochs, test_labels), verbose=1,
-              callbacks=[tensorboard])
+    train_gen = generate_arrays_from_file(train_data_file, train_labels_file,
+                                          num_classes)
+    test_gen = generate_arrays_from_file(test_data_file, test_labels_file,
+                                         num_classes)
+    model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=1,
+                        callbacks=[tensorboard],
+                        validation_data=test_gen,
+                        validation_steps=test_steps_per_epoch)
 
     # save model
     model.save('models/convlstm_{0}.h5'.format(time()))
 
     # evaluate accuracy
-    test_loss, test_acc = model.evaluate(test_epochs, test_labels,
-                                         batch_size)
+    test_loss, test_acc = model.evaluate_generator(test_gen,
+                                                   test_steps_per_epoch)
     accuracies.append(test_acc)
     print('Fold = ' + str(fold) + ' Accuracy = ' + str(test_acc))
 
     # calculate confusion matrix
-    predict_labels = model.predict(test_epochs, batch_size)
+    predict_labels = model.predict_generator(test_gen,
+                                             test_steps_per_epoch)
     predict_labels = predict_labels.argmax(axis=1)
     test_labels = test_labels.argmax(axis=1)
     print(confusion_matrix(test_labels, predict_labels))
@@ -152,7 +173,8 @@ if len(accuracies) > 1:
         precisions = [reports[i][name]['precision'] for i in range(
             len(reports))]
         print('Mean  prec ' + name + '  = ' + str(statistics.mean(precisions)))
-        print('Stdev prec ' + name + '  = ' + str(statistics.stdev(precisions)))
+        print('Stdev prec ' + name + '  = ' + str(statistics.stdev(
+              precisions)))
     for name in target_names:
         recalls = [reports[i][name]['recall'] for i in range(len(reports))]
         print('Mean  recll ' + name + ' = ' + str(statistics.mean(recalls)))
