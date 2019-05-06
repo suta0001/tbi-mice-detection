@@ -22,9 +22,10 @@ def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes):
         for data, label in zip(data_reader, labels_reader):
             # convert datasets to numpy arrays
             eeg_epoch = [float(i) for i in data]
-            eeg_shape = (len(eeg_epoch), 1)
+            eeg_shape = (1, len(eeg_epoch), 1)
             eeg_epoch = np.array(eeg_epoch).reshape(eeg_shape)
-            eeg_label = np.array(int(label))
+            eeg_label = [float(i) for i in label] 
+            eeg_label = np.array(eeg_label, dtype=int)
             eeg_label = to_cat(eeg_label, num_classes=num_classes)
             yield (eeg_epoch, eeg_label)
         labels_file.close()
@@ -32,11 +33,11 @@ def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes):
 
 
 def get_num_samples(filename):
-    num_samples = 0
     with open(filename, mode='r', newline='') as csvfile:
-        filereader = csv.reader(csvfile)
-        num_samples = filereader.line_num
-    return num_samples
+        for i, line in enumerate(csvfile):
+            pass 
+    return i + 1 
+
 
 # parameters to be varied
 eeg_epoch_width_in_s = int(sys.argv[2])
@@ -76,7 +77,7 @@ for fold in range(1):
     l2 = tf.keras.regularizers.l2
     reg_rate = 0.01
     kinitializer = 'lecun_uniform'
-    num_tsteps = eeg_epoch_width_in_s * 1024 / 4
+    num_tsteps = eeg_epoch_width_in_s * 1024 // 4
     lstm_dimensions = [128, 128]
     model = tf.keras.Sequential()
     model.add(
@@ -114,8 +115,8 @@ for fold in range(1):
 
     # set up training parameters
     batch_size = 1024
-    train_steps_per_epoch = num_train_samples / batch_size
-    test_steps_per_epoch = num_test_samples / batch_size
+    train_steps_per_epoch = num_train_samples // batch_size
+    test_steps_per_epoch = num_test_samples // batch_size
     epochs = 200
 
     # set up tensorboard
