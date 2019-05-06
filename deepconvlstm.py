@@ -12,22 +12,36 @@ import tensorflow as tf
 from time import time
 
 
-def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes):
+def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes,
+                              batch_size):
     to_cat = tf.keras.utils.to_categorical
     while True:
         data_file = open(eeg_data_file, mode='r', newline='')
         labels_file = open(eeg_labels_file, mode='r', newline='')
         data_reader = csv.reader(data_file)
         labels_reader = csv.reader(labels_file)
-        for data, label in zip(data_reader, labels_reader):
+        end_of_file = False
+        while not end_of_file:
+            eeg_epochs = []
+            eeg_labels = []
+            while len(eeg_epochs) < batch_size:
+                try:
+                    data = next(data_reader)
+                    label = next(labels_reader)
+                    # convert datasets to numpy arrays
+                    eeg_epoch = [float(i) for i in data]
+                    eeg_label = [float(i) for i in label] 
+                    eeg_epochs.append(eeg_epoch)
+                    eeg_labels.append(eeg_label)
+                except StopIteration:
+                    end_of_file = True
+                    break
             # convert datasets to numpy arrays
-            eeg_epoch = [float(i) for i in data]
-            eeg_shape = (1, len(eeg_epoch), 1)
-            eeg_epoch = np.array(eeg_epoch).reshape(eeg_shape)
-            eeg_label = [float(i) for i in label] 
-            eeg_label = np.array(eeg_label, dtype=int)
-            eeg_label = to_cat(eeg_label, num_classes=num_classes)
-            yield (eeg_epoch, eeg_label)
+            eeg_shape = (len(eeg_epochs), len(eeg_epochs[0]), 1)
+            eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
+            eeg_labels = np.array(eeg_labels, dtype=int)
+            eeg_labels = to_cat(eeg_labels, num_classes=num_classes) 
+            yield (eeg_epochs, eeg_labels)
         labels_file.close()
         data_file.close()
 
@@ -115,8 +129,8 @@ for fold in range(1):
 
     # set up training parameters
     batch_size = 1024
-    train_steps_per_epoch = num_train_samples // batch_size
-    test_steps_per_epoch = num_test_samples // batch_size
+    train_steps_per_epoch = int(math.ceil(num_train_samples / batch_size))
+    test_steps_per_epoch = int(math.ceil(num_test_samples / batch_size))
     epochs = 200
 
     # set up tensorboard
@@ -134,9 +148,9 @@ for fold in range(1):
 
     # train the model
     train_gen = generate_arrays_from_file(train_data_file, train_labels_file,
-                                          num_classes)
+                                          num_classes, batch_size)
     test_gen = generate_arrays_from_file(test_data_file, test_labels_file,
-                                         num_classes)
+                                         num_classes, batch_size)
     model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=1,
                         callbacks=[tensorboard],
                         validation_data=test_gen,
