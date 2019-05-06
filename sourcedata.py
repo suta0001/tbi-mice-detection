@@ -19,14 +19,14 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     # 4-class: 0 = Sham W, 1 = Sham NR and R
     #          2 = TBI W, 3 = TBI NR and R
     # 6-class: 0 = Sham W, 1 = Sham NR, 2 = Sham R
-    #          3 = TBI W, 4 = TBI NR, 5 = TBI R      
+    #          3 = TBI W, 4 = TBI NR, 5 = TBI R
     stage_file = open(stage_filename)
     for i in range(3):
         line = stage_file.readline()
     if 'SHAM' in line:
         offset = 0
-    else: 
-        offset = num_classes // 2 
+    else:
+        offset = num_classes // 2
     stages = [line.split(',')[2] for line in stage_file.readlines()[22:21623]]
     for i in range(len(stages)):
         if stages[i] == 'W' or num_classes == 2:
