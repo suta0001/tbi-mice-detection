@@ -19,7 +19,7 @@ cv_template = '{0}_{1}_ew{2}_f{3}_{4}.csv'
 for fold, dataset_fold in enumerate(dataset_folds):
     cv_common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold)]
     print('Processing fold ' + str(fold) + '...')
-    for i in range(len(dataset_folds)):
+    for i in range(len(dataset_fold)):
         if i < 7:
             data_purpose = 'train'
         else:
