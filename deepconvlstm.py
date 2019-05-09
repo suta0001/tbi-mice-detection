@@ -11,6 +11,7 @@ import statistics
 import sys
 import tensorflow as tf
 from time import time
+import yaml
 
 
 def get_num_samples(cv_raw_path, purpose='train', eeg_source='eeg',
@@ -47,7 +48,7 @@ def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                 eeg_labels.append(int(data[-1]))
                 data = [float(i) for i in data[0:-1]]
                 eeg_epochs.append(data)
-            if len(eeg_epochs) == batch_size or id == file_ids[-1]: 
+            if len(eeg_epochs) == batch_size or id == file_ids[-1]:
                 # convert datasets to numpy arrays
                 eeg_shape = (len(eeg_epochs), len(eeg_epochs[0]), 1)
                 eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
@@ -90,6 +91,10 @@ elif num_classes == 4:
 elif num_classes == 6:
     target_names = ['SW', 'SN', 'SR', 'TW', 'TN', 'TR']
 
+# set up model and training parameters from file
+models_path = 'models/'
+config_file = sys.argv[4]
+config_params = yaml.load(models_path + config_file)
 accuracies = []
 reports = []
 
@@ -98,6 +103,7 @@ for fold in range(1):
     # model is based on Ordonez et al., 2016,
     # http://dx.doi.org/10.3390/s16010115
     filters = [64, 64, 64, 64]
+    kernel_size = config_params['kernel_size']
     l2 = tf.keras.regularizers.l2
     reg_rate = 0.01
     kinitializer = 'lecun_uniform'
@@ -109,7 +115,7 @@ for fold in range(1):
     model.add(
         tf.keras.layers.Reshape(target_shape=(num_tsteps, 1, 1)))
     for filter in filters:
-        model.add(tf.keras.layers.Conv2D(filter, kernel_size=(5, 1),
+        model.add(tf.keras.layers.Conv2D(filter, kernel_size=(kernel_size, 1),
                                          padding='same',
                                          kernel_regularizer=l2(reg_rate),
                                          kernel_initializer=kinitializer))
@@ -141,27 +147,27 @@ for fold in range(1):
     cv_raw_path = 'data/cv_raw_{0}c/'.format(str(num_classes))
 
     # set up training parameters
-    batch_size = 1024
+    batch_size = 1024 * 4 // eeg_epoch_width_in_s
     num_train_samples = get_num_samples(cv_raw_path, 'train', eeg_source,
                                         eeg_epoch_width_in_s, fold)
     num_test_samples = get_num_samples(cv_raw_path, 'test', eeg_source,
                                        eeg_epoch_width_in_s, fold)
     train_steps_per_epoch = int(math.ceil(num_train_samples / batch_size))
     test_steps_per_epoch = int(math.ceil(num_test_samples / batch_size))
-    epochs = 100
+    epochs = config_params['epochs']
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
-    tensorboard.log_dir = 'tb_logs/{0}'.format(time())
+    tensorboard.log_dir = 'tb_logs/{0}'.format(config_params['config_name'])
     # tensorboard.histogram_freq = epochs / 1
     # tensorboard.write_grads = True
     # tensorboard.batch_size = batch_size
     # tensorboard.update_freq = 'epoch'
 
     # load previously saved model
-    if len(sys.argv) == 5:
-        print('loading previous model = ', sys.argv[4])
-        model = tf.keras.models.load_model(sys.argv[4])
+    if len(sys.argv) == 6:
+        print('loading previous model = ', sys.argv[5])
+        model = tf.keras.models.load_model(sys.argv[5])
 
     # train the model
     train_gen = generate_arrays_from_file(cv_raw_path, 'train', eeg_source,
@@ -170,14 +176,14 @@ for fold in range(1):
     test_gen = generate_arrays_from_file(cv_raw_path, 'test', eeg_source,
                                          eeg_epoch_width_in_s, fold,
                                          num_classes, batch_size, True)
-    model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=1,
+    model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=2,
                         callbacks=[tensorboard],
                         validation_data=test_gen,
                         validation_steps=test_steps_per_epoch,
                         max_queue_size=1)
 
     # save model
-    model.save('models/convlstm_{0}.h5'.format(time()))
+    model.save('models/{0}.h5'.format(config_params['config_name']))
 
     # evaluate accuracy
     test_loss, test_acc = model.evaluate_generator(test_gen,

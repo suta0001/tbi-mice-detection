@@ -1,0 +1,8 @@
+config_name: baseline_6c
+
+# training parameters
+# epochs is selected to end with highest validation accuracy
+epochs: 42
+
+# model parameters
+kernel_size: 5
