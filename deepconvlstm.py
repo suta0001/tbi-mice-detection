@@ -43,7 +43,7 @@ def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                                              str(id)))
             with open(data_filename) as datafile:
                 datareader = csv.reader(datafile)
-                data = datareader.next()
+                data = next(datareader)
                 eeg_labels.append(int(data[-1]))
                 data = [float(i) for i in data[0:-2]]
                 eeg_epochs.append(data)
@@ -73,7 +73,7 @@ def read_label_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                                          str(id)))
         with open(data_filename) as datafile:
             datareader = csv.reader(datafile)
-            data = datareader.next()
+            data = next(datareader)
             eeg_labels.append(int(data[-1]))
     eeg_labels = np.array(eeg_labels, dtype=int)
     return eeg_labels
