@@ -45,7 +45,7 @@ def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                 datareader = csv.reader(datafile)
                 data = next(datareader)
                 eeg_labels.append(int(data[-1]))
-                data = [float(i) for i in data[0:-2]]
+                data = [float(i) for i in data[0:-1]]
                 eeg_epochs.append(data)
             if len(eeg_epochs) == batch_size or id == (num_samples - 1):
                 # convert datasets to numpy arrays
