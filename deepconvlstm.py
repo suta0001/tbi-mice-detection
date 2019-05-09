@@ -47,7 +47,7 @@ def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                 eeg_labels.append(int(data[-1]))
                 data = [float(i) for i in data[0:-1]]
                 eeg_epochs.append(data)
-            if len(eeg_epochs) == batch_size or id == file_ids[-1]
+            if len(eeg_epochs) == batch_size or id == file_ids[-1]: 
                 # convert datasets to numpy arrays
                 eeg_shape = (len(eeg_epochs), len(eeg_epochs[0]), 1)
                 eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
@@ -173,14 +173,16 @@ for fold in range(1):
     model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=1,
                         callbacks=[tensorboard],
                         validation_data=test_gen,
-                        validation_steps=test_steps_per_epoch)
+                        validation_steps=test_steps_per_epoch,
+                        max_queue_size=1)
 
     # save model
     model.save('models/convlstm_{0}.h5'.format(time()))
 
     # evaluate accuracy
     test_loss, test_acc = model.evaluate_generator(test_gen,
-                                                   test_steps_per_epoch)
+                                                   test_steps_per_epoch,
+                                                   max_queue_size=1)
     accuracies.append(test_acc)
     print('Fold = ' + str(fold) + ' Accuracy = ' + str(test_acc))
 
@@ -189,7 +191,8 @@ for fold in range(1):
                                          eeg_epoch_width_in_s, fold,
                                          num_classes, batch_size, False)
     predict_labels = model.predict_generator(test_gen,
-                                             test_steps_per_epoch)
+                                             test_steps_per_epoch,
+                                             max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
     test_labels = read_label_from_file(cv_raw_path, 'test', eeg_source,
                                        eeg_epoch_width_in_s, fold)
