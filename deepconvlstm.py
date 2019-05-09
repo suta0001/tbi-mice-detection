@@ -93,8 +93,9 @@ elif num_classes == 6:
 
 # set up model and training parameters from file
 models_path = 'models/'
-config_file = sys.argv[4]
-config_params = yaml.load(models_path + config_file)
+config_file = '{0}.yaml'.format(sys.argv[4])
+with open(models_path + config_file) as cfile:
+    config_params = yaml.safe_load(cfile)
 accuracies = []
 reports = []
 
