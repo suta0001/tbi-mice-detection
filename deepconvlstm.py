@@ -47,7 +47,7 @@ def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
                 eeg_labels.append(int(data[-1]))
                 data = [float(i) for i in data[0:-1]]
                 eeg_epochs.append(data)
-            if len(eeg_epochs) == batch_size or id == (num_samples - 1):
+            if len(eeg_epochs) == batch_size or id == file_ids[-1]
                 # convert datasets to numpy arrays
                 eeg_shape = (len(eeg_epochs), len(eeg_epochs[0]), 1)
                 eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
