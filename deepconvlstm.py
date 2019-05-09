@@ -159,7 +159,9 @@ for fold in range(1):
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
-    tensorboard.log_dir = 'tb_logs/{0}'.format(config_params['config_name'])
+    log_dir = 'tb_logs/{0}_{1}'.format(config_params['config_name'],
+                                       config_params['epochs'])
+    tensorboard.log_dir = log_dir 
     # tensorboard.histogram_freq = epochs / 1
     # tensorboard.write_grads = True
     # tensorboard.batch_size = batch_size
@@ -184,7 +186,8 @@ for fold in range(1):
                         max_queue_size=1)
 
     # save model
-    model.save('models/{0}.h5'.format(config_params['config_name']))
+    model.save('models/{0}_{1}.h5'.format(config_params['config_name'],
+                                          config_params['epochs']))
 
     # evaluate accuracy
     test_loss, test_acc = model.evaluate_generator(test_gen,
