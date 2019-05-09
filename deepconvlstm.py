@@ -2,6 +2,7 @@ import csv
 import math
 import numpy as np
 import os
+import random
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
@@ -12,45 +13,70 @@ import tensorflow as tf
 from time import time
 
 
-def generate_arrays_from_file(eeg_data_file, eeg_labels_file, num_classes,
-                              batch_size):
+def get_num_samples(cv_raw_path, purpose='train', eeg_source='eeg',
+                    eeg_epoch_width_in_s=4, fold=0):
+    files = [file for file in os.listdir(cv_raw_path) if
+             '{0}_{1}_ew{2}_f{3}'.format(purpose, eeg_source,
+                                         str(eeg_epoch_width_in_s), str(fold))
+             in file]
+    return len(files)
+
+
+def generate_arrays_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
+                              eeg_epoch_width_in_s=4, fold=0, num_classes=4,
+                              batch_size=32, shuffle=True):
     to_cat = tf.keras.utils.to_categorical
+    template = '{0}_{1}_ew{2}_f{3}_{4}.csv'
+    num_samples = get_num_samples(cv_raw_path, purpose, eeg_source,
+                                  eeg_epoch_width_in_s, fold)
+    file_ids = [i for i in range(num_samples)]
+    if shuffle:
+        random.shuffle(file_ids)
     while True:
-        data_file = open(eeg_data_file, mode='r', newline='')
-        labels_file = open(eeg_labels_file, mode='r', newline='')
-        data_reader = csv.reader(data_file)
-        labels_reader = csv.reader(labels_file)
-        end_of_file = False
-        while not end_of_file:
-            eeg_epochs = []
-            eeg_labels = []
-            while len(eeg_epochs) < batch_size:
-                try:
-                    data = next(data_reader)
-                    label = next(labels_reader)
-                    # convert datasets to numpy arrays
-                    eeg_epoch = [float(i) for i in data]
-                    eeg_label = [float(i) for i in label] 
-                    eeg_epochs.append(eeg_epoch)
-                    eeg_labels.append(eeg_label)
-                except StopIteration:
-                    end_of_file = True
-                    break
-            # convert datasets to numpy arrays
-            eeg_shape = (len(eeg_epochs), len(eeg_epochs[0]), 1)
-            eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
-            eeg_labels = np.array(eeg_labels, dtype=int)
-            eeg_labels = to_cat(eeg_labels, num_classes=num_classes) 
-            yield (eeg_epochs, eeg_labels)
-        labels_file.close()
-        data_file.close()
+        eeg_epochs = []
+        eeg_labels = []
+        for id in file_ids:
+            data_filename = (cv_raw_path +
+                             template.format(purpose, eeg_source,
+                                             str(eeg_epoch_width_in_s),
+                                             str(fold),
+                                             str(id)))
+            with open(data_filename) as datafile:
+                datareader = csv.reader(datafile)
+                data = datareader.next()
+                eeg_labels.append(int(data[-1]))
+                data = [float(i) for i in data[0:-2]]
+                eeg_epochs.append(data)
+            if len(eeg_epochs) == batch_size or id == (num_samples - 1):
+                # convert datasets to numpy arrays
+                eeg_shape = (batch_size, len(eeg_epochs[0]), 1)
+                eeg_epochs = np.array(eeg_epochs).reshape(eeg_shape)
+                eeg_labels = np.array(eeg_labels, dtype=int)
+                eeg_labels = to_cat(eeg_labels, num_classes=num_classes)
+                yield (eeg_epochs, eeg_labels)
+                eeg_epochs = []
+                eeg_labels = []
 
 
-def get_num_samples(filename):
-    with open(filename, mode='r', newline='') as csvfile:
-        for i, line in enumerate(csvfile):
-            pass 
-    return i + 1 
+def read_label_from_file(cv_raw_path, purpose='train', eeg_source='eeg',
+                         eeg_epoch_width_in_s=4, fold=0):
+    template = '{0}_{1}_ew{2}_f{3}_{4}.csv'
+    num_samples = get_num_samples(cv_raw_path, purpose, eeg_source,
+                                  eeg_epoch_width_in_s, fold)
+    file_ids = [i for i in range(num_samples)]
+    eeg_labels = []
+    for id in file_ids:
+        data_filename = (cv_raw_path +
+                         template.format(purpose, eeg_source,
+                                         str(eeg_epoch_width_in_s),
+                                         str(fold),
+                                         str(id)))
+        with open(data_filename) as datafile:
+            datareader = csv.reader(datafile)
+            data = datareader.next()
+            eeg_labels.append(int(data[-1]))
+    eeg_labels = np.array(eeg_labels, dtype=int)
+    return eeg_labels
 
 
 # parameters to be varied
@@ -64,26 +90,10 @@ elif num_classes == 4:
 elif num_classes == 6:
     target_names = ['SW', 'SN', 'SR', 'TW', 'TN', 'TR']
 
-# read dataset per fold
 accuracies = []
 reports = []
-template = '{0}_{1}_ew{2}_f{3}.csv'
-common_labels = None
 
 for fold in range(1):
-    # set up data and label files
-    common_labels = [eeg_source, str(eeg_epoch_width_in_s), str(fold)]
-    cv_path = 'data/cv_{0}c/'.format(str(num_classes))
-    train_data_file = cv_path + template.format('train_data', *common_labels)
-    train_labels_file = cv_path + template.format('train_labels',
-                                                  *common_labels)
-    test_data_file = cv_path + template.format('test_data', *common_labels)
-    test_labels_file = cv_path + template.format('test_labels', *common_labels)
-
-    # get the total number of samples in training and test sets
-    num_train_samples = get_num_samples(train_labels_file)
-    num_test_samples = get_num_samples(test_labels_file)
-
     # setup the model
     # model is based on Ordonez et al., 2016,
     # http://dx.doi.org/10.3390/s16010115
@@ -127,11 +137,18 @@ for fold in range(1):
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
+    # set up data path
+    cv_raw_path = 'data/cv_raw_{0}c/'.format(str(num_classes))
+
     # set up training parameters
     batch_size = 1024
+    num_train_samples = get_num_samples(cv_raw_path, 'train', eeg_source,
+                                        eeg_epoch_width_in_s, fold)
+    num_test_samples = get_num_samples(cv_raw_path, 'test', eeg_source,
+                                       eeg_epoch_width_in_s, fold)
     train_steps_per_epoch = int(math.ceil(num_train_samples / batch_size))
     test_steps_per_epoch = int(math.ceil(num_test_samples / batch_size))
-    epochs = 200
+    epochs = 100
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
@@ -147,10 +164,12 @@ for fold in range(1):
         model = tf.keras.models.load_model(sys.argv[4])
 
     # train the model
-    train_gen = generate_arrays_from_file(train_data_file, train_labels_file,
-                                          num_classes, batch_size)
-    test_gen = generate_arrays_from_file(test_data_file, test_labels_file,
-                                         num_classes, batch_size)
+    train_gen = generate_arrays_from_file(cv_raw_path, 'train', eeg_source,
+                                          eeg_epoch_width_in_s, fold,
+                                          num_classes, batch_size, True)
+    test_gen = generate_arrays_from_file(cv_raw_path, 'test', eeg_source,
+                                         eeg_epoch_width_in_s, fold,
+                                         num_classes, batch_size, True)
     model.fit_generator(train_gen, train_steps_per_epoch, epochs, verbose=1,
                         callbacks=[tensorboard],
                         validation_data=test_gen,
@@ -166,9 +185,15 @@ for fold in range(1):
     print('Fold = ' + str(fold) + ' Accuracy = ' + str(test_acc))
 
     # calculate confusion matrix
+    test_gen = generate_arrays_from_file(cv_raw_path, 'test', eeg_source,
+                                         eeg_epoch_width_in_s, fold,
+                                         num_classes, batch_size, False)
     predict_labels = model.predict_generator(test_gen,
                                              test_steps_per_epoch)
     predict_labels = predict_labels.argmax(axis=1)
+    test_labels = read_label_from_file(cv_raw_path, 'test', eeg_source,
+                                       eeg_epoch_width_in_s, fold)
+
     test_labels = test_labels.argmax(axis=1)
     print(confusion_matrix(test_labels, predict_labels))
 
