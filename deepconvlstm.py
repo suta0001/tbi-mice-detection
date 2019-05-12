@@ -103,7 +103,7 @@ for fold in range(1):
     # setup the model
     # model is based on Ordonez et al., 2016,
     # http://dx.doi.org/10.3390/s16010115
-    filters = [64, 64, 64, 64]
+    filters = config_params['filters']
     kernel_size = config_params['kernel_size']
     l2 = tf.keras.regularizers.l2
     reg_rate = 0.01
