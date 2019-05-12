@@ -125,7 +125,8 @@ for fold in range(1):
     model.add(tf.keras.layers.Reshape(target_shape=(num_tsteps,
               filters[-1])))
     for dim in lstm_dimensions:
-        model.add(tf.keras.layers.LSTM(units=dim, return_sequences=True,
+        model.add(tf.keras.layers.LSTM(units=dim,
+                                       return_sequences=True,
                                        activation='tanh'))
     model.add(tf.keras.layers.Dropout(0.5))
     model.add(tf.keras.layers.TimeDistributed(
@@ -161,7 +162,7 @@ for fold in range(1):
     tensorboard = tf.keras.callbacks.TensorBoard()
     log_dir = 'tb_logs/{0}_{1}'.format(config_params['config_name'],
                                        config_params['epochs'])
-    tensorboard.log_dir = log_dir 
+    tensorboard.log_dir = log_dir
     # tensorboard.histogram_freq = epochs / 1
     # tensorboard.write_grads = True
     # tensorboard.batch_size = batch_size
@@ -206,8 +207,6 @@ for fold in range(1):
     predict_labels = predict_labels.argmax(axis=1)
     test_labels = read_label_from_file(cv_raw_path, 'test', eeg_source,
                                        eeg_epoch_width_in_s, fold)
-
-    test_labels = test_labels.argmax(axis=1)
     print(confusion_matrix(test_labels, predict_labels))
 
     # print report
