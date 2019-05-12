@@ -1,8 +1,8 @@
-config_name: baseline_6c
+config_name: baseline_4c_ew32
 
 # training parameters
 # epochs is selected to end with highest validation accuracy
-epochs: 42
+epochs: 100 
 
 # model parameters
 kernel_size: 5

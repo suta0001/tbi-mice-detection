@@ -93,8 +93,9 @@ elif num_classes == 6:
 
 # set up model and training parameters from file
 models_path = 'models/'
-config_file = sys.argv[4]
-config_params = yaml.load(models_path + config_file)
+config_file = '{0}.yaml'.format(sys.argv[4])
+with open(models_path + config_file) as cfile:
+    config_params = yaml.safe_load(cfile)
 accuracies = []
 reports = []
 
@@ -158,7 +159,9 @@ for fold in range(1):
 
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
-    tensorboard.log_dir = 'tb_logs/{0}'.format(config_params['config_name'])
+    log_dir = 'tb_logs/{0}_{1}'.format(config_params['config_name'],
+                                       config_params['epochs'])
+    tensorboard.log_dir = log_dir 
     # tensorboard.histogram_freq = epochs / 1
     # tensorboard.write_grads = True
     # tensorboard.batch_size = batch_size
@@ -183,7 +186,8 @@ for fold in range(1):
                         max_queue_size=1)
 
     # save model
-    model.save('models/{0}.h5'.format(config_params['config_name']))
+    model.save('models/{0}_{1}.h5'.format(config_params['config_name'],
+                                          config_params['epochs']))
 
     # evaluate accuracy
     test_loss, test_acc = model.evaluate_generator(test_gen,
