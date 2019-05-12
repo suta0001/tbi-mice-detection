@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import column_or_1d
 import sourcedata as sd
 import statistics
@@ -76,6 +77,12 @@ for fold in range(10):
     train_labels = column_or_1d(np.array(train_labels, dtype=int))
     test_epochs = np.array(test_epochs)
     test_labels = column_or_1d(np.array(test_labels, dtype=int))
+
+    # standardize feature values
+    scaler = StandardScaler()
+    scaler.fit(train_epochs)
+    train_epochs = scaler.transform(train_epochs)
+    test_epochs = scaler.transform(test_epochs)
 
     # define classifier
     clf = RandomForestClassifier(n_estimators=100)
