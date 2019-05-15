@@ -30,15 +30,14 @@ for epochs_file in epochs_files:
     with open(epochs_filename, mode='r', newline='') as csvfile:
         filereader = csv.reader(csvfile)
         for row in filereader:
-            eeg_epoch = [float(i) / 1000.0 for i in row]
+            eeg_epoch = [float(i) for i in row]
             # extract features
             feature = []
             feature.append(statistics.mean(eeg_epoch))
             feature.append(statistics.variance(eeg_epoch))
             feature.append(skew(eeg_epoch))
             feature.append(kurtosis(eeg_epoch))
-            feature.append(ta.zero_crossing_rate(eeg_epoch) /
-                           (len(eeg_epoch) - 1))
+            feature.append(ta.zero_crossing_rate(eeg_epoch))
             feature.extend(ta.calc_hjorth_params(eeg_epoch))
             feature.append(np.percentile(eeg_epoch, 75))
             eeg_epochs.append(feature)
