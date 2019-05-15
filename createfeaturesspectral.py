@@ -46,12 +46,10 @@ for epochs_file in epochs_files:
             feature = []
             f, psd = sa.calc_psd(data, 256)
             total_power = sa.calc_bandpower(psd, f, f[0], f[-1])
-            power = [sa.calc_bandpower(psd, f, eeg_bands[band][0], 
+            power = [sa.calc_bandpower(psd, f, eeg_bands[band][0],
                      eeg_bands[band][1]) for band in bands]
-            power_dBm = [20.0 * math.log10(power[i] / 1000.0) for i in 
-                         range(len(power))]
             rel_power = [power[i] / total_power for i in range(len(power))]
-            feature.extend(power_dBm)
+            feature.extend(power)
             feature.extend(rel_power)
             feature.append(rel_power[0] / rel_power[1])
             feature.append(rel_power[0] / rel_power[2])
@@ -75,8 +73,8 @@ for epochs_file in epochs_files:
             feature.append(sa.calc_edge_frequency(psd, f, 0.50))
             feature.append(f[np.argmax(psd)])
             feature.append(sa.calc_spectral_entropy(psd))
-            feature.append(20.0 * math.log10(statistics.mean(psd) / 1000.0))
-            feature.append(20.0 * math.log10(statistics.variance(psd) / 1.0e6))
+            feature.append(statistics.mean(psd))
+            feature.append(statistics.variance(psd))
             feature.append(skew(psd))
             feature.append(kurtosis(psd))
             eeg_epochs.append(feature)
@@ -85,4 +83,3 @@ for epochs_file in epochs_files:
     common_labels = [eeg_source, str(eeg_epoch_width_in_s)]
     output_filename = template.format(species, *common_labels)
     sd.write_data(spectral_path + output_filename, eeg_epochs)
-
