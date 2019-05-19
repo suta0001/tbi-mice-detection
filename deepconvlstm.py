@@ -98,6 +98,21 @@ tensorboard.log_dir = log_dir
 # tensorboard.update_freq = 'epoch'
 
 for fold in range(1):
+    # set up checkpoints
+    filepath = 'models/{0}_{1}_best.h5'.format(config_params['config_name'],
+                                               str(fold))
+    ckpt_best = tf.keras.callbacks.ModelCheckpoint(filepath,
+                                                   monitor='val_acc',
+                                                   save_best_only=True,
+                                                   mode='max')
+    filepath = 'models/{0}_{1}_'.format(config_params['config_name'],
+                                        str(fold))
+    filepath += '{epoch:04d}.h5'
+    ckpt_reg = tf.keras.callbacks.ModelCheckpoint(filepath, period=25)
+
+    # set callbacks
+    callbacks = [ckpt_best, ckpt_reg, tensorboard]
+
     # set up data path
     cv_raw_path = 'data/cv_raw_{0}c/'.format(str(num_classes))
 
@@ -117,14 +132,9 @@ for fold in range(1):
                                 num_classes, True)
     model.fit_generator(train_gen,
                         epochs=epochs, verbose=2,
-                        callbacks=[tensorboard],
+                        callbacks=callbacks,
                         validation_data=test_gen,
                         max_queue_size=1)
-
-    # save model
-    model.save('models/{0}_{1}_{2}.h5'.format(config_params['config_name'],
-                                              config_params['epochs'],
-                                              str(fold)))
 
     # calculate accuracy and confusion matrix
     test_gen = dg.DataGenerator(cv_raw_path, test_template, batch_size,
