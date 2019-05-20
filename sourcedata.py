@@ -3,7 +3,7 @@ import pyedflib
 
 
 def create_epochs(time_window_in_s=4, edf_filename=None,
-                  stage_filename=None, num_classes=4):
+                  stage_filename=None, num_classes=4, overlap=True):
     # check for time window validity -- only multiple of 4 s is allowed
     if time_window_in_s % 4 != 0:
         print('Time window must be a multiple of 4 seconds.')
@@ -43,21 +43,36 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
 
     # build EEG and label epochs
     num_samples = time_window_in_s // 4 * 1024
-    num_epochs = ((len(eeg_signal) - num_samples) // 1024) + 1
     num_stages = time_window_in_s // 4
-    eeg_epochs = [eeg_signal[i * 1024:i * 1024 + num_samples]
-                  for i in range(num_epochs)]
     stage_epochs = []
-    for i in range(num_epochs):
-        stages_temp = stages[i:i + num_stages]
-        if stages_temp.count(0 + offset) == num_stages:
-            stage_epochs.append([0 + offset])
-        elif stages_temp.count(1 + offset) == num_stages:
-            stage_epochs.append([1 + offset])
-        elif stages_temp.count(2 + offset) == num_stages:
-            stage_epochs.append([2 + offset])
-        else:
-            stage_epochs.append([-1])
+    if overlap:  # window step is 4 seconds
+        num_epochs = ((len(eeg_signal) - num_samples) // 1024) + 1
+        eeg_epochs = [eeg_signal[i * 1024:i * 1024 + num_samples]
+                      for i in range(num_epochs)]
+        for i in range(num_epochs):
+            stages_temp = stages[i:i + num_stages]
+            if stages_temp.count(0 + offset) == num_stages:
+                stage_epochs.append([0 + offset])
+            elif stages_temp.count(1 + offset) == num_stages:
+                stage_epochs.append([1 + offset])
+            elif stages_temp.count(2 + offset) == num_stages:
+                stage_epochs.append([2 + offset])
+            else:
+                stage_epochs.append([-1])
+    else:  # window step is epoch width
+        num_epochs = len(eeg_signal) // num_samples
+        eeg_epochs = [eeg_signal[i * num_samples:(i + 1) * num_samples]
+                      for i in range(num_epochs)]
+        for i in range(num_epochs):
+            stages_temp = stages[i * num_stages:(i + 1) * num_stages]
+            if stages_temp.count(0 + offset) == num_stages:
+                stage_epochs.append([0 + offset])
+            elif stages_temp.count(1 + offset) == num_stages:
+                stage_epochs.append([1 + offset])
+            elif stages_temp.count(2 + offset) == num_stages:
+                stage_epochs.append([2 + offset])
+            else:
+                stage_epochs.append([-1])
 
     # drop epochs with stage == -1 before returning them
     eeg_epochs = [eeg_epochs[i] for i in range(num_epochs)
