@@ -6,11 +6,15 @@ import sys
 # parameter to be varied
 eeg_epoch_width_in_s = int(sys.argv[1])
 num_classes = int(sys.argv[2])
+overlap = sys.argv[3].lower() == 'true'
 
 # set up file location paths
 edf_path = 'data/edf/'
 stage_path = 'data/sleep_staging/'
-epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+if overlap:
+    epochs_path = 'data/epochs_{0}c/'.format(str(num_classes))
+else:
+    epochs_path = 'data/epochs_novl_{0}c/'.format(str(num_classes))
 
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
@@ -22,7 +26,8 @@ for edf_file in edf_files:
     eeg_epochs, stage_epochs = sd.create_epochs(eeg_epoch_width_in_s,
                                                 edf_filename,
                                                 stage_filename,
-                                                num_classes)
+                                                num_classes,
+                                                overlap)
     template = '{0}_ew{1}.csv'
     common_labels = [str(eeg_epoch_width_in_s)]
     output_filename = template.format(species + '_eeg', *common_labels)
