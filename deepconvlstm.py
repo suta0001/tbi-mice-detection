@@ -131,7 +131,7 @@ for fold in range(1):
     test_gen = dg.DataGenerator(cv_raw_path, test_template, batch_size,
                                 num_classes, True)
     model.fit_generator(train_gen,
-                        epochs=epochs, verbose=2,
+                        epochs=epochs, verbose=1,
                         callbacks=callbacks,
                         validation_data=test_gen,
                         max_queue_size=1)
@@ -146,7 +146,7 @@ for fold in range(1):
     test_acc = accuracy_score(test_labels, predict_labels)
     accuracies.append(test_acc)
     print('Fold = ' + str(fold) + ' Accuracy = ' +
-          '{:.3f}'.format(str(test_acc)))
+          '{:.3f}'.format(test_acc))
     print(confusion_matrix(test_labels, predict_labels))
 
     # print report
@@ -159,18 +159,18 @@ for fold in range(1):
 
 # print out results summary
 if len(accuracies) > 1:
-    print('Mean  accuracy = ' + '{:.3f}'.str(statistics.mean(accuracies)))
-    print('Stdev accuracy = ' + '{:.3f}'.str(statistics.stdev(accuracies)))
+    print('Mean  accuracy = ' + '{:.3f}'.format(statistics.mean(accuracies)))
+    print('Stdev accuracy = ' + '{:.3f}'.format(statistics.stdev(accuracies)))
     for name in target_names:
         precisions = [reports[i][name]['precision'] for i in range(
             len(reports))]
         print('Mean  prec ' + name + '  = ' +
-              '{:.3f}'.str(statistics.mean(precisions)))
+              '{:.3f}'.format(statistics.mean(precisions)))
         print('Stdev prec ' + name + '  = ' +
-              '{:.3f}'.str(statistics.stdev(precisions)))
+              '{:.3f}'.format(statistics.stdev(precisions)))
     for name in target_names:
         recalls = [reports[i][name]['recall'] for i in range(len(reports))]
         print('Mean  recll ' + name + ' = ' +
-              '{:.3f}'.str(statistics.mean(recalls)))
+              '{:.3f}'.format(statistics.mean(recalls)))
         print('Stdev recll ' + name + ' = ' +
-              '{:.3f}'.str(statistics.stdev(recalls)))
+              '{:.3f}'.format(statistics.stdev(recalls)))
