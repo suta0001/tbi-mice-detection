@@ -22,8 +22,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         # set index range
         # max index is num_samples - 1 for last batch
         min_index = index * self.batch_size
-        if (index + 1) * self.batch_size < self.num_samples - 1:
-            max_index = (index + 1) * self.batch_size
+        if (index + 1) * self.batch_size < self.num_samples:
+            max_index = (index + 1) * self.batch_size - 1
         else:
             max_index = self.num_samples - 1
         # generate the batch
