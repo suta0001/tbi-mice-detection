@@ -50,38 +50,41 @@ else:
     kinitializer = 'lecun_uniform'
     num_tsteps = eeg_epoch_width_in_s * 1024 // 4
     lstm_dimensions = [128, 128]
-    model = tf.keras.Sequential()
-    model.add(
-        tf.keras.layers.BatchNormalization(input_shape=(num_tsteps, 1)))
-    model.add(
-        tf.keras.layers.Reshape(target_shape=(num_tsteps, 1, 1)))
-    for filter in filters:
-        model.add(tf.keras.layers.Conv2D(filter, kernel_size=(kernel_size, 1),
-                                         padding='same',
-                                         kernel_regularizer=l2(reg_rate),
-                                         kernel_initializer=kinitializer))
-        model.add(tf.keras.layers.BatchNormalization())
-        model.add(tf.keras.layers.Activation('relu'))
-    model.add(tf.keras.layers.Reshape(target_shape=(num_tsteps,
-              filters[-1])))
-    for dim in lstm_dimensions:
-        model.add(tf.keras.layers.LSTM(units=dim,
-                                       return_sequences=True,
-                                       activation='tanh'))
-    model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.TimeDistributed(
-        tf.keras.layers.Dense(units=num_classes,
-                              kernel_regularizer=l2(reg_rate))
-    ))
-    model.add(tf.keras.layers.Activation('softmax'))
-    model.add(tf.keras.layers.Lambda(lambda x: x[:, -1, :],
-                                     output_shape=[num_classes]))
-    # define optimizers
-    optimizer = tf.keras.optimizers.RMSprop(lr=0.001)
-    # compile the model
-    model.compile(optimizer=optimizer,
-                  loss='categorical_crossentropy',
-                  metrics=['accuracy'])
+    strategy = tf.distribute.MirroredStrategy()
+    with strategy.scope():
+        model = tf.keras.Sequential()
+        model.add(
+            tf.keras.layers.BatchNormalization(input_shape=(num_tsteps, 1)))
+        model.add(
+            tf.keras.layers.Reshape(target_shape=(num_tsteps, 1, 1)))
+        for filter in filters:
+            model.add(tf.keras.layers.Conv2D(filter,
+                                             kernel_size=(kernel_size, 1),
+                                             padding='same',
+                                             kernel_regularizer=l2(reg_rate),
+                                             kernel_initializer=kinitializer))
+            model.add(tf.keras.layers.BatchNormalization())
+            model.add(tf.keras.layers.Activation('relu'))
+        model.add(tf.keras.layers.Reshape(target_shape=(num_tsteps,
+                  filters[-1])))
+        for dim in lstm_dimensions:
+            model.add(tf.keras.layers.LSTM(units=dim,
+                                           return_sequences=True,
+                                           activation='tanh'))
+        model.add(tf.keras.layers.Dropout(0.5))
+        model.add(tf.keras.layers.TimeDistributed(
+            tf.keras.layers.Dense(units=num_classes,
+                                  kernel_regularizer=l2(reg_rate))
+        ))
+        model.add(tf.keras.layers.Activation('softmax'))
+        model.add(tf.keras.layers.Lambda(lambda x: x[:, -1, :],
+                                         output_shape=[num_classes]))
+        # define optimizers
+        optimizer = tf.keras.optimizers.RMSprop(lr=0.001)
+        # compile the model
+        model.compile(optimizer=optimizer,
+                      loss='categorical_crossentropy',
+                      metrics=['accuracy'])
 
 # set up training parameters
 batch_size = 1024 * 4 // eeg_epoch_width_in_s
