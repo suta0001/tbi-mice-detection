@@ -62,7 +62,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         if self.shuffle:
             np.random.shuffle(self.file_ids)
 
-    def get_num_samples(self):
+    def _get_num_samples(self):
         files = [file for file in os.listdir(self.file_path) if
                  self.file_template[-7:-1] in file]
         return len(files)
