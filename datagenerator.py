@@ -29,7 +29,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         # generate the batch
         data = []
         labels = []
-        for id in file_ids[min_index:max_index + 1]:
+        for id in self.file_ids[min_index:max_index + 1]:
             data_filename = (self.file_path +
                              self.file_template.format(str(id)))
             with open(data_filename) as datafile:
@@ -48,7 +48,7 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def read_label_from_file(self):
         labels = []
-        for id in file_ids:
+        for id in self.file_ids:
             data_filename = (self.file_path +
                              self.file_template.format(str(id)))
             with open(data_filename) as datafile:
@@ -64,5 +64,5 @@ class DataGenerator(tf.keras.utils.Sequence):
 
     def _get_num_samples(self):
         files = [file for file in os.listdir(self.file_path) if
-                 self.file_template[-7:-1] in file]
+                 self.file_template[:-7] in file]
         return len(files)
