@@ -50,8 +50,7 @@ else:
     kinitializer = 'lecun_uniform'
     num_tsteps = eeg_epoch_width_in_s * 1024 // 4
     lstm_dimensions = [128, 128]
-    strategy = tf.distribute.MirroredStrategy()
-    with strategy.scope():
+    with tf.device('/cpu:0'):
         model = tf.keras.Sequential()
         model.add(
             tf.keras.layers.BatchNormalization(input_shape=(num_tsteps, 1)))
@@ -81,8 +80,10 @@ else:
                                          output_shape=[num_classes]))
         # define optimizers
         optimizer = tf.keras.optimizers.RMSprop(lr=0.001)
-        # compile the model
-        model.compile(optimizer=optimizer,
+
+    # compile the model
+    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=4)
+    pmodel.compile(optimizer=optimizer,
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
@@ -133,7 +134,7 @@ for fold in range(1):
                                  num_classes, True)
     test_gen = dg.DataGenerator(cv_raw_path, test_template, batch_size,
                                 num_classes, True)
-    model.fit_generator(train_gen,
+    pmodel.fit_generator(train_gen,
                         epochs=epochs, verbose=1,
                         callbacks=callbacks,
                         validation_data=test_gen,
@@ -142,7 +143,7 @@ for fold in range(1):
     # calculate accuracy and confusion matrix
     test_gen = dg.DataGenerator(cv_raw_path, test_template, batch_size,
                                 num_classes, False)
-    predict_labels = model.predict_generator(test_gen,
+    predict_labels = pmodel.predict_generator(test_gen,
                                              max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
     test_labels = test_gen.read_label_from_file()
