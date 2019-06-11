@@ -33,6 +33,16 @@ else:
 if not os.path.isdir(epochs_path):
     os.makedirs(epochs_path)
 
+
+def process_edf(edf_filename, stage_filename, eeg_epoch_width_in_s,
+                num_classes, overlap, eeg_epochs_filename,
+                stage_epochs_filename):
+    eeg_epochs, stage_epochs = sd.create_epochs(eeg_epoch_width_in_s,
+                                                edf_filename, stage_filename,
+                                                num_classes, overlap)
+    sd.write_data(eeg_epochs_filename, eeg_epochs)
+    sd.write_data(stage_epochs_filename, stage_epochs)
+
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
 with concurrent.futures.ProcessPoolExecutor(
@@ -42,17 +52,13 @@ with concurrent.futures.ProcessPoolExecutor(
         print('Processing ' + species)
         edf_filename = os.path.join(edf_path, edf_file)
         stage_filename = os.path.join(stage_path, species + '_Stages.csv')
-        future = executor.submit(sd.create_epochs, args.eeg_epoch_width_in_s,
-                                 edf_filename, stage_filename,
-                                 args.num_classes, not args.no_overlap)
-        eeg_epochs = future.result()[0]
-        stage_epochs = future.result()[1]
         template = '{0}_ew{1}.csv'
         common_labels = [str(args.eeg_epoch_width_in_s)]
-        output_filename = template.format(species + '_eeg', *common_labels)
-        executor.submit(sd.write_data, os.path.join(epochs_path,
-                        output_filename), eeg_epochs)
-        output_filename = template.format(species + '_labels',
-                                          *common_labels)
-        executor.submit(sd.write_data, os.path.join(epochs_path,
-                        output_filename), stage_epochs)
+        eeg_epochs_filename = os.path.join(epochs_path, template.format(
+            species + '_eeg', *common_labels))
+        stage_epochs_filename = os.path.join(epochs_path, template.format(
+            species + '_labels', *common_labels))
+        executor.submit(process_edf, edf_filename, stage_filename,
+                        args.eeg_epoch_width_in_s, args.num_classes,
+                        not args.no_overlap, eeg_epochs_filename,
+                        stage_epochs_filename)
