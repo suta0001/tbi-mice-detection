@@ -4,6 +4,28 @@ import pyedflib
 
 def create_epochs(time_window_in_s=4, edf_filename=None,
                   stage_filename=None, num_classes=4, overlap=True):
+    """Create EEG and stage epochs from an EDF file and its associated
+       sleep staging file.
+
+    This function creates EEG and stage epochs from an EDF file
+    containing 24-hour EEG recording sampled at 256 Hz and its associated
+    sleep staging file.  A sleep stage is assigned for every 4-second
+    time window.  This limits valid EEG epoch durations to integer multiples
+    of 4 seconds.  There are 3 possible sets of stages to generate: 2 stages,
+    4 stages, and 6 stages.  The epochs with duration larger than 4 s can be
+    generated as overlapping epochs with a sliding step of 4 s.
+
+    Args:
+        time_window_in_s: epoch duration in s
+        edf_filename: path to EDF file
+        stage_filename: path to associated sleep staging file
+        num_classes: number of stages
+        overlap: set to True to generate overlapping epochs
+
+    Returns:
+        A list of EEG epochs and a list of stage epochs
+    """
+
     # check for time window validity -- only multiple of 4 s is allowed
     if time_window_in_s % 4 != 0:
         print('Time window must be a multiple of 4 seconds.')
@@ -14,12 +36,12 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     eeg_signal = edf_file.readSignal(0)
 
     # read sleep stages from CSV file
-    # class codes are assigned as follows:
-    # 2-class: 0 = Sham, 1 = TBI
-    # 4-class: 0 = Sham W, 1 = Sham NR and R
-    #          2 = TBI W, 3 = TBI NR and R
-    # 6-class: 0 = Sham W, 1 = Sham NR, 2 = Sham R
-    #          3 = TBI W, 4 = TBI NR, 5 = TBI R
+    # stages are assigned as follows:
+    # 2 stages: 0 = Sham, 1 = TBI
+    # 4 stages: 0 = Sham W, 1 = Sham NR and R
+    #           2 = TBI W, 3 = TBI NR and R
+    # 6 stages: 0 = Sham W, 1 = Sham NR, 2 = Sham R
+    #           3 = TBI W, 4 = TBI NR, 5 = TBI R
     stage_file = open(stage_filename)
     for i in range(3):
         line = stage_file.readline()
@@ -41,7 +63,7 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
         else:
             stages[i] = -1
 
-    # build EEG and label epochs
+    # build EEG and stage epochs
     num_samples = time_window_in_s // 4 * 1024
     num_stages = time_window_in_s // 4
     stage_epochs = []
@@ -51,6 +73,7 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
                       for i in range(num_epochs)]
         for i in range(num_epochs):
             stages_temp = stages[i:i + num_stages]
+            # assign stage only if all stages in the epochs are the same
             if stages_temp.count(0 + offset) == num_stages:
                 stage_epochs.append([0 + offset])
             elif stages_temp.count(1 + offset) == num_stages:
@@ -65,6 +88,7 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
                       for i in range(num_epochs)]
         for i in range(num_epochs):
             stages_temp = stages[i * num_stages:(i + 1) * num_stages]
+            # assign stage only if all stages in the epochs are the same
             if stages_temp.count(0 + offset) == num_stages:
                 stage_epochs.append([0 + offset])
             elif stages_temp.count(1 + offset) == num_stages:
@@ -87,13 +111,14 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     return eeg_epochs, stage_epochs
 
 
-def read_data(filename, dataset):
+def read_data(filename):
+    dataset = []
     with open(filename, mode='r', newline='') as csvfile:
         filereader = csv.reader(csvfile)
         for row in filereader:
             data = [float(i) for i in row]
             dataset.append(data)
-    return
+    return dataset
 
 
 def write_data(filename, dataset):
@@ -101,4 +126,3 @@ def write_data(filename, dataset):
         filewriter = csv.writer(csvfile)
         for data in dataset:
             filewriter.writerow(data)
-    return
