@@ -7,7 +7,7 @@ import sys
 
 
 """Create EEG Epochs from EDF Files"""
-# set parameters based on command-line arguments
+# set command-line arguments parser
 parser = au.set_common_arg_parser('Create epochs from EDF files.')
 args = parser.parse_args()
 
