@@ -130,8 +130,8 @@ def write_data(filename, dataset):
             filewriter.writerow(data)
 
 
-def write_root_attrs(epochs_filename, eeg_epoch_width_in_s, num_classes,
-                     overlap):
+def write_hdf5_root_attrs(epochs_filename, eeg_epoch_width_in_s, num_classes,
+                          overlap):
     with h5py.File(epochs_filename, 'a') as f:
         f.attrs.create('eeg_epoch_width_in_s', eeg_epoch_width_in_s)
         f.attrs.create('num_classes', num_classes)
