@@ -25,13 +25,14 @@ if not os.path.isdir(epochs_path):
 
 
 def process_edf(edf_filename, stage_filename, eeg_epoch_width_in_s,
-                num_classes, overlap, eeg_epochs_filename,
-                stage_epochs_filename):
+                num_classes, overlap, epochs_filename):
     eeg_epochs, stage_epochs = du.create_epochs(eeg_epoch_width_in_s,
                                                 edf_filename, stage_filename,
                                                 num_classes, overlap)
-    du.write_data(eeg_epochs_filename, eeg_epochs)
-    du.write_data(stage_epochs_filename, stage_epochs)
+    du.write_hdf5_root_attrs(epochs_filename, eeg_epoch_width_in_s,
+                             num_classes, overlap)
+    du.write_data_to_hdf5(epochs_filename, 'eeg', eeg_epochs)
+    du.write_data_to_hdf5(epochs_filename, 'stage', stage_epochs)
 
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
@@ -42,13 +43,10 @@ with concurrent.futures.ProcessPoolExecutor(
         print('Processing ' + species)
         edf_filename = os.path.join(edf_path, edf_file)
         stage_filename = os.path.join(stage_path, species + '_Stages.csv')
-        template = '{0}_ew{1}.csv'
+        template = '{0}_ew{1}.h5'
         common_labels = [str(args.eeg_epoch_width_in_s)]
-        eeg_epochs_filename = os.path.join(epochs_path, template.format(
-            species + '_eeg', *common_labels))
-        stage_epochs_filename = os.path.join(epochs_path, template.format(
-            species + '_labels', *common_labels))
+        epochs_filename = os.path.join(epochs_path, template.format(
+            species, *common_labels))
         executor.submit(process_edf, edf_filename, stage_filename,
                         args.eeg_epoch_width_in_s, args.num_classes,
-                        not args.no_overlap, eeg_epochs_filename,
-                        stage_epochs_filename)
+                        not args.no_overlap, epochs_filename)
