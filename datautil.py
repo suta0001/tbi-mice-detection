@@ -1,4 +1,6 @@
 import csv
+import h5py
+import numpy as np
 import pyedflib
 
 
@@ -126,3 +128,17 @@ def write_data(filename, dataset):
         filewriter = csv.writer(csvfile)
         for data in dataset:
             filewriter.writerow(data)
+
+
+def write_root_attrs(epochs_filename, eeg_epoch_width_in_s, num_classes,
+                     overlap):
+    with h5py.File(epochs_filename, 'a') as f:
+        f.attrs.create('eeg_epoch_width_in_s', eeg_epoch_width_in_s)
+        f.attrs.create('num_classes', num_classes)
+        f.attrs.create('overlap', overlap)
+
+
+def write_data_to_hdf5(filename, group, dataset):
+    dataset = np.asarray(dataset)
+    with h5py.File(filename, 'a') as f:
+        f.create_dataset(group, data=dataset, compression='gzip')
