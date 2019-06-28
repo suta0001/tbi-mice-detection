@@ -29,8 +29,10 @@ def process_edf(edf_filename, stage_filename, eeg_epoch_width_in_s,
     eeg_epochs, stage_epochs = du.create_epochs(eeg_epoch_width_in_s,
                                                 edf_filename, stage_filename,
                                                 num_classes, overlap)
-    du.write_hdf5_root_attrs(epochs_filename, eeg_epoch_width_in_s,
-                             num_classes, overlap)
+    du.write_attrs_to_hdf5(epochs_filename,
+                           eeg_epoch_width_in_s=eeg_epoch_width_in_s,
+                           num_classes=num_classes,
+                           overlap=overlap)
     du.write_data_to_hdf5(epochs_filename, 'eeg', eeg_epochs)
     du.write_data_to_hdf5(epochs_filename, 'stage', stage_epochs)
 

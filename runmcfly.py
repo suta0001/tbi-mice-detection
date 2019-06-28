@@ -94,7 +94,7 @@ model, params, mtype, acc = find_arch(train_epochs, train_labels,
                                       model_path=mpath)
 print('Best model = ' + mtype)
 print(params)
-print('kNN acc = ' + acc)
+print('kNN acc = ' + str(acc))
 
 # train best model on full dataset
 nr_epochs = 50
