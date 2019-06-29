@@ -1,9 +1,7 @@
 import apputil as au
 import concurrent.futures
-import csv
 import os
 import datautil as du
-import sys
 
 
 """Create EEG Epochs from EDF Files"""
