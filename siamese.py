@@ -62,7 +62,8 @@ else:
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
-batch_size = 1024 * 4 // eeg_epoch_width_in_s
+batch_size = min(1024 * 4 // eeg_epoch_width_in_s, num_train_samples,
+                 num_test_samples)
 epochs = config_params['epochs']
 
 # set up tensorboard
@@ -98,7 +99,7 @@ for fold in range(1):
     train_sham_set = dataset_folds[fold][0:4]
     train_tbi_set = dataset_folds[fold][4:7]
     test_sham_set = dataset_folds[fold][7:9]
-    test_tbi_set = dataset_folds[fold][10:11]
+    test_tbi_set = dataset_folds[fold][9:11]
 
     # train the model
     train_gen = dg.PairDataGenerator(data_path, file_template, train_sham_set,
