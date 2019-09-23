@@ -1,6 +1,6 @@
-from keras.models import Model, Sequential
-from keras import layers
-import keras.backend as K
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras import layers
+import tensorflow.keras.backend as K
 
 
 def get_baseline_convolutional_encoder(filters, embedding_dimension,
