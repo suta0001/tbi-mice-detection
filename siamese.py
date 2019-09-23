@@ -55,6 +55,7 @@ else:
 
     # compile the model
     pmodel = tf.keras.utils.multi_gpu_model(model, gpus=4)
+    # pmodel = model
     pmodel.compile(optimizer=optimizer,
                    loss='binary_crossentropy',
                    metrics=['accuracy'])
@@ -62,8 +63,10 @@ else:
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
-batch_size = min(1024 * 4 // eeg_epoch_width_in_s, num_train_samples,
-                 num_test_samples)
+batch_size = 1024 * 4 // eeg_epoch_width_in_s
+train_batch_size = min(batch_size, num_train_samples)
+test_batch_size = min(batch_size, num_test_samples)
+
 epochs = config_params['epochs']
 
 # set up tensorboard
@@ -103,10 +106,10 @@ for fold in range(1):
 
     # train the model
     train_gen = dg.PairDataGenerator(data_path, file_template, train_sham_set,
-                                     train_tbi_set, batch_size, num_classes,
+                                     train_tbi_set, train_batch_size, num_classes,
                                      num_train_samples)
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
-                                    test_tbi_set, batch_size, num_classes,
+                                    test_tbi_set, test_batch_size, num_classes,
                                     num_test_samples)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
@@ -116,7 +119,7 @@ for fold in range(1):
 
     # calculate accuracy and confusion matrix
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
-                                    test_tbi_set, batch_size, num_classes,
+                                    test_tbi_set, test_batch_size, num_classes,
                                     num_test_samples, shuffle=False)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
