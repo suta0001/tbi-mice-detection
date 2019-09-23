@@ -38,6 +38,8 @@ class PairDataGenerator(tf.keras.utils.Sequence):
                  regenerate=False, shuffle=True):
         self.file_path = file_path
         self.file_template = file_template
+        assert batch_size <= num_samples,\
+            'Batch size must be <= number of samples'
         self.batch_size = batch_size
         self.num_samples = num_samples
         # check that num_classes is set to 4
