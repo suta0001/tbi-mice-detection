@@ -18,12 +18,7 @@ import yaml
 eeg_epoch_width_in_s = int(sys.argv[2])
 eeg_source = sys.argv[1]
 num_classes = int(sys.argv[3])
-if num_classes == 2:
-    target_names = ['Sham', 'TBI']
-elif num_classes == 4:
-    target_names = ['SW', 'SS', 'TW', 'TS']
-elif num_classes == 6:
-    target_names = ['SW', 'SN', 'SR', 'TW', 'TN', 'TR']
+target_names = ['same', 'diff']
 
 # set up model and training parameters from file
 models_path = 'models/'
@@ -106,8 +101,8 @@ for fold in range(1):
 
     # train the model
     train_gen = dg.PairDataGenerator(data_path, file_template, train_sham_set,
-                                     train_tbi_set, train_batch_size, num_classes,
-                                     num_train_samples)
+                                     train_tbi_set, train_batch_size,
+                                     num_classes, num_train_samples)
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
                                     test_tbi_set, test_batch_size, num_classes,
                                     num_test_samples)
