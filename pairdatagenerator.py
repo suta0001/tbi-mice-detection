@@ -93,17 +93,17 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         data1 = []
         labels = []
         store = pd.HDFStore(self.out_file, mode='r')
-        for index in self.indexes[min_index:max_index + 1]:
-            df = store.select('pair_index', start=index, stop=index + 1)
-            epoch0, epoch1 = self.pair_data_from_hdf5(df.at[index, 'species0'],
-                                                      df.at[index, 'species1'],
-                                                      df.at[index, 'stage0'],
-                                                      df.at[index, 'stage1'],
-                                                      df.at[index, 'index0'],
-                                                      df.at[index, 'index1'])
+        for pidx in self.indexes[min_index:max_index + 1]:
+            df = store.select('pair_index', start=pidx, stop=pidx + 1)
+            epoch0, epoch1 = self.pair_data_from_hdf5(df.at[pidx, 'species0'],
+                                                      df.at[pidx, 'species1'],
+                                                      df.at[pidx, 'stage0'],
+                                                      df.at[pidx, 'stage1'],
+                                                      df.at[pidx, 'index0'],
+                                                      df.at[pidx, 'index1'])
             data0.append(epoch0)
             data1.append(epoch1)
-            labels.append(df.at[index, 'label'])
+            labels.append(df.at[pidx, 'label'])
         store.close()
         # convert datasets to numpy arrays
         shape = (len(data0), len(data0[0]), 1)
