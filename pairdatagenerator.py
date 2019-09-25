@@ -117,7 +117,7 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         labels = []
         with pd.HDFStore(self.out_file, mode='r') as store:
             df = store.select('pair_index', columns=['label'])
-            labels = df['label'].tolist()
+            labels = df['label'].tolist()[0:self.num_samples]
         return np.array(labels, dtype=int)
 
     def get_num_samples(self, species, stage):
