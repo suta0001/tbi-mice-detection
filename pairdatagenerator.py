@@ -73,6 +73,7 @@ class PairDataGenerator(tf.keras.utils.Sequence):
             '_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
+        self.df = pd.read_hdf(self.out_file, 'pair_index', mode='r')
         # shuffle data if shuffle=True
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -92,9 +93,8 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         data0 = []
         data1 = []
         labels = []
-        store = pd.HDFStore(self.out_file, mode='r')
         for pidx in self.indexes[min_index:max_index + 1]:
-            df = store.select('pair_index', start=pidx, stop=pidx + 1)
+            df = self.df
             epoch0, epoch1 = self.pair_data_from_hdf5(df.at[pidx, 'species0'],
                                                       df.at[pidx, 'species1'],
                                                       df.at[pidx, 'stage0'],
@@ -104,7 +104,6 @@ class PairDataGenerator(tf.keras.utils.Sequence):
             data0.append(epoch0)
             data1.append(epoch1)
             labels.append(df.at[pidx, 'label'])
-        store.close()
         # convert datasets to numpy arrays
         shape = (len(data0), len(data0[0]), 1)
         data0 = np.array(data0).reshape(shape)
@@ -114,10 +113,7 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         return [data0, data1], labels
 
     def get_labels(self):
-        labels = []
-        with pd.HDFStore(self.out_file, mode='r') as store:
-            df = store.select('pair_index', columns=['label'])
-            labels = df['label'].tolist()[0:self.num_samples]
+        labels = df['label'].tolist()[0:self.num_samples]
         return np.array(labels, dtype=int)
 
     def get_num_samples(self, species, stage):
