@@ -28,6 +28,13 @@ with open(models_path + config_file) as cfile:
 accuracies = []
 reports = []
 
+
+def contrastive_loss(y_true, y_pred):
+    margin = 1
+    K = tf.keras.backend
+    return K.mean(y_true * K.square(y_pred) + (1 - y_true) *
+                  K.square(K.maximum(margin - y_pred, 0)))
+
 # load previously saved model if requested
 if len(sys.argv) == 6:
     print('loading previous model = ', sys.argv[5])
@@ -44,21 +51,23 @@ else:
                                                      embedding_dimension,
                                                      dropout=dropout)
         model = build_siamese_net(encoder, (num_tsteps, 1),
-                                  distance_metric='uniform_euclidean')
+        #                          distance_metric='uniform_euclidean')
+                                  distance_metric='uni_euc_cont_loss')
         # define optimizers
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
 
     # compile the model
-    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=4)
-    # pmodel = model
+    # pmodel = tf.keras.utils.multi_gpu_model(model, gpus=4)
+    pmodel = model
     pmodel.compile(optimizer=optimizer,
-                   loss='binary_crossentropy',
+    #               loss='binary_crossentropy',
+                   loss=contrastive_loss,
                    metrics=['accuracy'])
 
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
-batch_size = 1024 * 4 // eeg_epoch_width_in_s
+batch_size = 1024 * 8 // eeg_epoch_width_in_s
 train_batch_size = min(batch_size, num_train_samples)
 test_batch_size = min(batch_size, num_test_samples)
 
