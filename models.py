@@ -94,9 +94,9 @@ def build_siamese_net(encoder, input_shape,
         def eucl_dist_output_shape(shapes):
             shape1, shape2 = shapes
             return (shape1[0], 1)
-            output = layers.Lambda(euclidean_distance, 
-                                   output_shape=eucl_dist_output_shape)(
-                                   [encoded_1, encoded_2])
+        output = layers.Lambda(euclidean_distance,
+                               output_shape=eucl_dist_output_shape)(
+                               [encoded_1, encoded_2])
     else:
         raise NotImplementedError
 
