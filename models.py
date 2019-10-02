@@ -87,13 +87,16 @@ def build_siamese_net(encoder, input_shape,
         # cosine_distance = layers.Subtract()([ones, cosine_proximity])
         # output = layers.Dense(1, activation='sigmoid')(cosine_distance)
     elif distance_metric == 'uni_euc_cont_loss':
-        embedded_distance = layers.Subtract(name='subtract_embeddings')(
-            [encoded_1, encoded_2])
-        # Sqrt of sum of squares
-        output = layers.Lambda(
-            lambda x: K.sqrt(K.sum(K.square(x), axis=-1, keepdims=True)),
-            name='euclidean_distance'
-        )(embedded_distance)
+        def euclidean_distance(vects):
+            x, y = vects
+            return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
+
+        def eucl_dist_output_shape(shapes):
+            shape1, shape2 = shapes
+            return (shape1[0], 1)
+            output = layers.Lambda(euclidean_distance, 
+                                   output_shape=eucl_dist_output_shape)(
+                                   [encoded_1, encoded_2])
     else:
         raise NotImplementedError
 
