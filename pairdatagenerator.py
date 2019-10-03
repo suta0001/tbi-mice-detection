@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 import random
+from scipy.signal import decimate
 import tensorflow as tf
 
 
@@ -32,12 +33,14 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         num_samples: number of pair samples to generate
         regenerate: if True, new samples will be regenerated
         shuffle: if True, dataset are shuffled after each epoch
+        decimate: decimation factor
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  batch_size=32, num_classes=4, num_samples=1024,
-                 regenerate=False, shuffle=True):
+                 regenerate=False, shuffle=True, decimate=1):
         self.file_path = file_path
         self.file_template = file_template
+        self.decimate = decimate
         assert batch_size <= num_samples,\
             'Batch size must be <= number of samples'
         self.batch_size = batch_size
@@ -101,6 +104,9 @@ class PairDataGenerator(tf.keras.utils.Sequence):
                                                       df.at[pidx, 'stage1'],
                                                       df.at[pidx, 'index0'],
                                                       df.at[pidx, 'index1'])
+            if self.decimate > 1:
+                epoch0 = decimate(epoch0, self.decimate)
+                epoch1 = decimate(epoch1, self.decimate)
             data0.append(epoch0)
             data1.append(epoch1)
             labels.append(df.at[pidx, 'label'])

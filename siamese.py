@@ -19,6 +19,7 @@ eeg_epoch_width_in_s = int(sys.argv[2])
 eeg_source = sys.argv[1]
 num_classes = int(sys.argv[3])
 target_names = ['same', 'diff']
+decimate_factor = 4
 
 # set up model and training parameters from file
 models_path = 'models/'
@@ -30,9 +31,9 @@ reports = []
 
 
 def contrastive_loss(y_true, y_pred):
-    margin = 1
+    margin = 1.25
     K = tf.keras.backend
-    return K.mean(y_true * K.square(y_pred) + (1 - y_true) *
+    return K.mean((1 - y_true) * K.square(y_pred) + y_true *
                   K.square(K.maximum(margin - y_pred, 0)))
 
 # load previously saved model if requested
@@ -45,7 +46,7 @@ else:
     filters = config_params['filters']
     embedding_dimension = config_params['embedding_dimension']
     dropout = config_params['dropout']
-    num_tsteps = eeg_epoch_width_in_s * 1024 // 4
+    num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
     with tf.device('/cpu:0'):
         encoder = get_baseline_convolutional_encoder(filters,
                                                      embedding_dimension,
@@ -57,8 +58,8 @@ else:
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
 
     # compile the model
-    # pmodel = tf.keras.utils.multi_gpu_model(model, gpus=4)
-    pmodel = model
+    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=3)
+    # pmodel = model
     pmodel.compile(optimizer=optimizer,
     #               loss='binary_crossentropy',
                    loss=contrastive_loss,
@@ -67,7 +68,7 @@ else:
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
-batch_size = 1024 * 8 // eeg_epoch_width_in_s
+batch_size = 1024 * 8 * decimate_factor // eeg_epoch_width_in_s
 train_batch_size = min(batch_size, num_train_samples)
 test_batch_size = min(batch_size, num_test_samples)
 
@@ -97,7 +98,7 @@ for fold in range(1):
     filepath = 'models/{}_{}_'.format(config_params['config_name'],
                                       str(fold))
     filepath += '{epoch:04d}.h5'
-    ckpt_reg = tf.keras.callbacks.ModelCheckpoint(filepath, period=25)
+    ckpt_reg = tf.keras.callbacks.ModelCheckpoint(filepath, period=5)
 
     # set callbacks
     callbacks = [ckpt_best, ckpt_reg, tensorboard]
@@ -111,10 +112,11 @@ for fold in range(1):
     # train the model
     train_gen = dg.PairDataGenerator(data_path, file_template, train_sham_set,
                                      train_tbi_set, train_batch_size,
-                                     num_classes, num_train_samples)
+                                     num_classes, num_train_samples,
+                                     decimate=decimate_factor)
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
                                     test_tbi_set, test_batch_size, num_classes,
-                                    num_test_samples)
+                                    num_test_samples, decimate=decimate_factor)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
@@ -124,7 +126,8 @@ for fold in range(1):
     # calculate accuracy and confusion matrix
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
                                     test_tbi_set, test_batch_size, num_classes,
-                                    num_test_samples, shuffle=False)
+                                    num_test_samples, shuffle=False,
+                                    decimate=decimate_factor)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
