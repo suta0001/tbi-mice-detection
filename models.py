@@ -89,7 +89,9 @@ def build_siamese_net(encoder, input_shape,
     elif distance_metric == 'uni_euc_cont_loss':
         embedded_distance = layers.Subtract(name='subtract_embeddings')(
             [encoded_1, encoded_2])
-        output = K.sqrt(K.sum(K.square(embedded_distance), axis=1, keepdims=True)),
+        output = layers.Lambda(
+            lambda x: K.sqrt(K.sum(K.square(x), axis=1, keepdims=True)),
+        )(embedded_distance)
     else:
         raise NotImplementedError
 
