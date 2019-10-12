@@ -119,7 +119,7 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         return [data0, data1], labels
 
     def get_labels(self):
-        labels = df['label'].tolist()[0:self.num_samples]
+        labels = self.df['label'].tolist()[0:self.num_samples]
         return np.array(labels, dtype=int)
 
     def get_num_samples(self, species, stage):
