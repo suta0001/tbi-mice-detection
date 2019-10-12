@@ -2,8 +2,8 @@ from collections import Counter
 import h5py
 from itertools import combinations, permutations, product
 import numpy as np
-import pandas as pd
 import os
+import pandas as pd
 import random
 from scipy.signal import decimate
 import tensorflow as tf
@@ -11,13 +11,15 @@ import tensorflow as tf
 
 class PairDataGeneratorRS(tf.keras.utils.Sequence):
     """
-    This class generates the pair data used to train/test a Siamese network.
+    This class generates the pair data used to train/test a Siamese network,
+    where train and test data come from same set of species.
 
     The pair data is restricted to come from different mice species to improve
     generality of the embedding learnt by the Siamese network.
     Pair from same classes is labeled with 0.
     Pair from different classes is labeled with 1.
     The set of sham/TBI mice must contain at least 2 unique species.
+    Pair data in test set will not be in the train set.
 
     Currently, it only support num_classes = 4.  Number of samples generated
     may be more than num_samples to ensure pair samples are distributed
@@ -28,23 +30,30 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         file_template: template of filenamem, e.g., {}_BL5_ew32.h5
         sham_set: set of mice species with sham injury
         tbi_set: set of mice species with TBI
-        batch_size: training batch size
+        purpose: purpose of generator - train or test
+        batch_size: batch size
         num_classes: number of species classes
         num_samples: number of pair samples to generate
         regenerate: if True, new samples will be regenerated
         shuffle: if True, dataset are shuffled after each epoch
         decimate: decimation factor
+        test_percent: percentage of pair samples used for test set
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
-                 batch_size=32, num_classes=4, num_samples=1024,
-                 regenerate=False, shuffle=True, decimate=1):
+                 purpose='train', batch_size=32, num_classes=4,
+                 num_samples=1024, regenerate=False, shuffle=True, decimate=1,
+                 test_percent=20):
         self.file_path = file_path
         self.file_template = file_template
         self.decimate = decimate
-        assert batch_size <= num_samples,\
-            'Batch size must be <= number of samples'
-        self.batch_size = batch_size
         self.num_samples = num_samples
+        assert purpose in ('train', 'test'),\
+            'purpose must be either train or test'
+        self.purpose = purpose
+        assert test_percent >= 0 and test_percent <= 100,\
+            'test_percent must be between 0 and 100'
+        self.test_percent = test_percent
+
         # check that num_classes is set to 4
         assert num_classes == 4,\
             'Only num_classes = 4 is supported currently'
@@ -73,10 +82,24 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         # read from existing index file for generated samples
         # if regenerate = False; generate new index file if it does not exist
         self.out_file = file_template[:-3].format('pairdata') +\
-            '_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples)
+            '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
+                                     test_percent)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
-        self.df = pd.read_hdf(self.out_file, 'pair_index', mode='r')
+
+        # set the generator to be either train or test data generator
+        num_test_samples = int(np.round(self.test_percent *
+                                        self.num_samples / 100))
+        if self.purpose == 'test':
+            self.num_samples = num_test_samples
+            self.df = pd.read_hdf(self.out_file, 'pair_index/test', mode='r')
+        else:
+            self.num_samples = num_samples - num_test_samples
+            self.df = pd.read_hdf(self.out_file, 'pair_index/train', mode='r')
+        assert batch_size <= self.num_samples,\
+            'Batch size must be <= number of (train or test) samples'
+        self.batch_size = batch_size
+
         # shuffle data if shuffle=True
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -119,7 +142,7 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         return [data0, data1], labels
 
     def get_labels(self):
-        labels = df['label'].tolist()[0:self.num_samples]
+        labels = self.df['label'].tolist()[0:self.num_samples]
         return np.array(labels, dtype=int)
 
     def get_num_samples(self, species, stage):
@@ -150,7 +173,8 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
     def _generate_labeled_pairs(self):
         if os.path.exists(self.out_file):
             os.remove(self.out_file)
-        curr_index = 0
+        curr_train_index = 0
+        curr_test_index = 0
         store = pd.HDFStore(self.out_file, mode='a', complevel=4,
                             complib='zlib')
         for type in ['Sham', 'TBI', 'Both']:
@@ -193,21 +217,49 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
                     index_pair = random.sample(list(product(index0, index1)),
                                                num_pair_samples)
                     index_pair = [list(t) for t in zip(*index_pair)]
-                    df_index = list(range(curr_index,
-                                    curr_index + num_pair_samples))
-                    store.append('pair_index',
+                    num_test_pair_samples = int(np.round(self.test_percent *
+                                                         num_pair_samples /
+                                                         100))
+                    num_train_pair_samples = num_pair_samples -\
+                        num_test_pair_samples
+                    df_train_index = list(range(curr_train_index,
+                                                curr_train_index +
+                                                num_train_pair_samples))
+                    df_test_index = list(range(curr_test_index,
+                                               curr_test_index +
+                                               num_test_pair_samples))
+                    index0 = index_pair[0][:num_train_pair_samples]
+                    index1 = index_pair[1][:num_train_pair_samples]
+                    store.append('pair_index/train',
                                  pd.DataFrame({'species0': species0,
                                                'species1': species1,
                                                'stage0': stage0,
                                                'stage1': stage1,
-                                               'index0': index_pair[0],
-                                               'index1': index_pair[1],
+                                               'index0': index0,
+                                               'index1': index1,
                                                'label': label},
-                                              index=df_index),
+                                              index=df_train_index),
                                  data_columns=True,
                                  min_itemsize={'species0': 7,
                                                'species1': 7,
                                                'stage0': 5,
                                                'stage1': 5})
-                    curr_index += num_pair_samples
+                    curr_train_index += num_train_pair_samples
+                    index0 = index_pair[0][num_train_pair_samples:]
+                    index1 = index_pair[1][num_train_pair_samples:]
+                    store.append('pair_index/test',
+                                 pd.DataFrame({'species0': species0,
+                                               'species1': species1,
+                                               'stage0': stage0,
+                                               'stage1': stage1,
+                                               'index0': index0,
+                                               'index1': index1,
+                                               'label': label},
+                                              index=df_test_index),
+                                 data_columns=True,
+                                 min_itemsize={'species0': 7,
+                                               'species1': 7,
+                                               'stage0': 5,
+                                               'stage1': 5})
+                    curr_test_index += num_test_pair_samples
         store.close()
