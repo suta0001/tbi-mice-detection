@@ -1,5 +1,5 @@
 import csv
-import pairdatagenerator as dg
+import pairdatageneratorrs as dg
 from models import get_baseline_convolutional_encoder, build_siamese_net
 import numpy as np
 import os
@@ -36,6 +36,7 @@ def contrastive_loss(y_true, y_pred):
     return K.mean((1 - y_true) * K.square(y_pred) + y_true *
                   K.square(K.maximum(margin - y_pred, 0)))
 
+
 # load previously saved model if requested
 if len(sys.argv) == 6:
     print('loading previous model = ', sys.argv[5])
@@ -52,7 +53,6 @@ else:
                                                      embedding_dimension,
                                                      dropout=dropout)
         model = build_siamese_net(encoder, (num_tsteps, 1),
-        #                          distance_metric='uniform_euclidean')
                                   distance_metric='uni_euc_cont_loss')
         # define optimizers
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
@@ -61,17 +61,13 @@ else:
     pmodel = tf.keras.utils.multi_gpu_model(model, gpus=3)
     # pmodel = model
     pmodel.compile(optimizer=optimizer,
-    #               loss='binary_crossentropy',
                    loss=contrastive_loss,
                    metrics=['accuracy'])
 
 # set up training parameters
-num_train_samples = config_params['num_train_samples']
-num_test_samples = config_params['num_test_samples']
+num_samples = config_params['num_samples']
+test_percent = config_params['test_percent']
 batch_size = 1024 * 8 * decimate_factor // eeg_epoch_width_in_s
-train_batch_size = min(batch_size, num_train_samples)
-test_batch_size = min(batch_size, num_test_samples)
-
 epochs = config_params['epochs']
 
 # set up tensorboard
@@ -104,19 +100,19 @@ for fold in range(1):
     callbacks = [ckpt_best, ckpt_reg, tensorboard]
 
     # set up train and test sets
-    train_sham_set = dataset_folds[fold][0:4]
-    train_tbi_set = dataset_folds[fold][4:7]
-    test_sham_set = dataset_folds[fold][7:9]
-    test_tbi_set = dataset_folds[fold][9:11]
+    sham_set = dataset_folds[fold][0:4] + dataset_folds[fold][7:9]
+    tbi_set = dataset_folds[fold][4:7] + dataset_folds[fold][9:11]
 
     # train the model
-    train_gen = dg.PairDataGenerator(data_path, file_template, train_sham_set,
-                                     train_tbi_set, train_batch_size,
-                                     num_classes, num_train_samples,
-                                     decimate=decimate_factor)
-    test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
-                                    test_tbi_set, test_batch_size, num_classes,
-                                    num_test_samples, decimate=decimate_factor)
+    train_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
+                                     tbi_set, 'train', batch_size,
+                                     num_classes, num_samples,
+                                     decimate=decimate_factor,
+                                     test_percent=test_percent)
+    test_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
+                                    tbi_set, 'test', batch_size, num_classes,
+                                    num_samples, decimate=decimate_factor,
+                                    test_percent=test_percent)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
@@ -124,10 +120,11 @@ for fold in range(1):
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
-    test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
-                                    test_tbi_set, test_batch_size, num_classes,
-                                    num_test_samples, shuffle=False,
-                                    decimate=decimate_factor)
+    test_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
+                                    tbi_set, 'test', batch_size, num_classes,
+                                    num_samples, shuffle=False,
+                                    decimate=decimate_factor,
+                                    test_percent=test_percent)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)

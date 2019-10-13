@@ -52,7 +52,8 @@ def build_siamese_net(encoder, input_shape,
                       distance_metric='uniform_euclidean'):
     assert distance_metric in ('uniform_euclidean', 'weighted_euclidean',
                                'uniform_l1', 'weighted_l1',
-                               'dot_product', 'cosine_distance')
+                               'dot_product', 'cosine_distance',
+                               'uni_euc_cont_loss')
 
     input_1 = layers.Input(input_shape)
     input_2 = layers.Input(input_shape)
@@ -85,6 +86,12 @@ def build_siamese_net(encoder, input_shape,
         # ones = layers.Input(tensor=K.ones_like(cosine_proximity))
         # cosine_distance = layers.Subtract()([ones, cosine_proximity])
         # output = layers.Dense(1, activation='sigmoid')(cosine_distance)
+    elif distance_metric == 'uni_euc_cont_loss':
+        embedded_distance = layers.Subtract(name='subtract_embeddings')(
+            [encoded_1, encoded_2])
+        output = layers.Lambda(
+            lambda x: K.sqrt(K.sum(K.square(x), axis=1, keepdims=True)),
+        )(embedded_distance)
     else:
         raise NotImplementedError
 
