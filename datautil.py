@@ -140,4 +140,6 @@ def write_attrs_to_hdf5(filename, group=None, **kwargs):
 def write_data_to_hdf5(filename, group, dataset):
     dataset = np.asarray(dataset)
     with h5py.File(filename, 'a') as f:
+        if group in f.keys():
+            del f[group]
         f.create_dataset(group, data=dataset, compression='gzip')
