@@ -70,6 +70,7 @@ def process_edf(edf_path, edf_file, eeg_epoch_width_in_s,
     write_epochs(epochs_filename, species, num_classes, eeg_epochs,
                  stage_epochs)
 
+
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
 with concurrent.futures.ProcessPoolExecutor(
