@@ -58,7 +58,7 @@ else:
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
 
     # compile the model
-    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=3)
+    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
     # pmodel = model
     pmodel.compile(optimizer=optimizer,
                    loss=contrastive_loss,
@@ -104,15 +104,15 @@ for fold in range(1):
     tbi_set = dataset_folds[fold][4:7] + dataset_folds[fold][9:11]
 
     # train the model
-    train_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
-                                     tbi_set, 'train', batch_size,
-                                     num_classes, num_samples,
-                                     decimate=decimate_factor,
-                                     test_percent=test_percent)
-    test_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
-                                    tbi_set, 'test', batch_size, num_classes,
-                                    num_samples, decimate=decimate_factor,
-                                    test_percent=test_percent)
+    train_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
+                                       tbi_set, 'train', batch_size,
+                                       num_classes, num_samples,
+                                       decimate=decimate_factor,
+                                       test_percent=test_percent)
+    test_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
+                                      tbi_set, 'test', batch_size, num_classes,
+                                      num_samples, decimate=decimate_factor,
+                                      test_percent=test_percent)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
@@ -120,11 +120,11 @@ for fold in range(1):
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
-    test_gen = dg.PairDataGenerator(data_path, file_template, sham_set,
-                                    tbi_set, 'test', batch_size, num_classes,
-                                    num_samples, shuffle=False,
-                                    decimate=decimate_factor,
-                                    test_percent=test_percent)
+    test_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
+                                      tbi_set, 'test', batch_size, num_classes,
+                                      num_samples, shuffle=False,
+                                      decimate=decimate_factor,
+                                      test_percent=test_percent)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
