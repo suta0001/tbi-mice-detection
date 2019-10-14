@@ -123,6 +123,19 @@ def read_data(filename):
     return dataset
 
 
+def read_data_from_hdf5(filename, group):
+    with h5py.File(filename, 'r') as f:
+        dataset = f[group][:]
+    return dataset
+
+
+def read_groups_from_hdf5(filename, group=None):
+    with h5py.File(filename, 'r') as f:
+        g = f[group] if group else f
+        groups = list(g.keys())
+    return groups
+
+
 def write_data(filename, dataset):
     with open(filename, mode='w', newline='') as csvfile:
         filewriter = csv.writer(csvfile)
