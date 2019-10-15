@@ -1,7 +1,7 @@
 import numpy as np
 import pyentrp.entropy as entropy
 import pywt
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, decimate, lfilter
 from scipy.stats import kurtosis
 from sklearn.decomposition import FastICA
 
@@ -34,6 +34,28 @@ def do_bandpass_filter(eeg_epochs, lowcut=0.5, highcut=40, fs=256,
                                                order)
         bpf_eeg_epochs.append(bpf_eeg_epoch)
     return bpf_eeg_epochs
+
+
+def butter_lowpass(highcut, fs, order=4):
+    nyq = 0.5 * fs
+    high = highcut / nyq
+    b, a = butter(order, high, btype='low')
+    return b, a
+
+
+def butter_lowpass_filter(data, highcut, fs, order=4):
+    b, a = butter_lowpass(highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+
+def do_lowpass_filter(eeg_epochs, highcut=128, fs=256, order=4):
+    lpf_eeg_epochs = []
+    for eeg_epoch in eeg_epochs:
+        lpf_eeg_epoch = butter_lowpass_filter(eeg_epoch, highcut, fs,
+                                              order)
+        lpf_eeg_epochs.append(lpf_eeg_epoch)
+    return lpf_eeg_epochs
 
 
 def normalize(values):
@@ -119,3 +141,25 @@ def do_awica(eeg_epochs):
         clean_eeg_epoch = awica(eeg_epoch)
         clean_eeg_epochs.append(clean_eeg_epoch)
     return clean_eeg_epochs
+
+
+def do_decimate(eeg_epochs, dec_factor=4):
+    dec_eeg_epochs = []
+    for eeg_epoch in eeg_epochs:
+        dec_eeg_epoch = decimate(eeg_epoch, dec_factor)
+        dec_eeg_epochs.append(dec_eeg_epoch)
+    return dec_eeg_epochs
+
+
+def process(eeg_epochs, pp_set='pp4'):
+    if pp_set == 'pp1':
+        ops_set = [do_bandpass_filter]
+    elif pp_set == 'pp2':
+        ops_set = [do_bandpass_filter, do_awica]
+    elif pp_set == 'pp3':
+        ops_set = [do_lowpass_filter]
+    elif pp_set == 'pp4':
+        ops_set = [do_decimate]
+    for ops in ops_set:
+        eeg_epochs = ops(eeg_epochs)
+    return eeg_epochs
