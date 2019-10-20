@@ -5,7 +5,7 @@ import os
 import preprocess as pp
 
 
-"""Create EEG Epochs from EDF Files"""
+"""Preprocess EEG Epochs"""
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Apply preprocessing steps.')
 parser.add_argument('pp_set', default='pp4',
