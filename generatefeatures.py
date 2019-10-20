@@ -5,7 +5,7 @@ import featureextraction as fe
 import os
 
 
-"""Create EEG Epochs from EDF Files"""
+"""Generate features"""
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Source epoch.')
 parser.add_argument('source', default=None,
