@@ -4,7 +4,7 @@ import argparse
 def set_common_arg_parser(description):
     """Return a common argument parser"""
     parser = argparse.ArgumentParser(
-        description='Create epochs from EDF files.')
+        description=description)
     parser.add_argument('eeg_epoch_width_in_s', default=32, type=int,
                         choices=[4, 8, 16, 32, 64, 128],
                         help='EEG epoch width in seconds')
