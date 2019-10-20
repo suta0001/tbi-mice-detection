@@ -1,7 +1,45 @@
 import csv
 import h5py
 import numpy as np
+import os
 import pyedflib
+from sklearn.utils.validation import column_or_1d
+
+
+def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
+                  species_set):
+    """Build labeled dataset for training or validation from source epochs.
+
+    Args:
+        epochs_path: directory path where epoch files are stored
+        num_classes: number of classes
+        epoch_width_in_s: epoch duration in s
+        pp_step: applied preprocessing step(s)
+        featgen: applied feature generator
+        species_set: set of species used for the dataset
+
+    Returns:
+        A list of data epochs and a list of label epochs
+    """
+
+    data_epochs = []
+    labels = []
+    for species in species_set:
+        filename = os.path.join(epochs_path,
+                                '{}_BL5_ew{}.h5'.format(species,
+                                                        epoch_width_in_s))
+        groups = read_groups_from_hdf5(filename,
+                                       '{}_{}'.format(pp_step, featgen))
+        for group in groups:
+            fgroup = '{}_{}/{}'.format(pp_step, featgen, group)
+            temp_epochs = read_data_from_hdf5(filename, fgroup)
+            data_epochs.extend(temp_epochs)
+            labels += len(temp_epochs) * [get_class_label(num_classes,
+                                                          species, group)]
+    # convert datasets to numpy arrays
+    data_epochs = np.array(data_epochs)
+    labels = column_or_1d(np.array(labels, dtype=int))
+    return data_epochs, labels
 
 
 def create_epochs(time_window_in_s=4, edf_filename=None,
@@ -111,6 +149,28 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     stage_file.close()
 
     return eeg_epochs, stage_epochs
+
+
+def get_class_label(num_classes, species, stage):
+    if 'Sham' in species:
+        offset = 0
+    else:
+        offset = num_classes // 2
+    if num_classes == 4:
+        if stage == 'wake':
+            label = offset + 0
+        elif stage == 'sleep':
+            label = offset + 1
+    elif num_classes == 6:
+        if stage == 'wake':
+            label = offset + 0
+        elif stage == 'nrem':
+            label = offset + 1
+        elif stage == 'rem':
+            label = offset + 2
+    else:
+        label = offset
+    return label
 
 
 def read_data(filename):
