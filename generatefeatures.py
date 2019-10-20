@@ -32,7 +32,7 @@ def process_file(path, file):
     groups = du.read_groups_from_hdf5(filename, args.source)
     for group in groups:
         fgroup = '{}/{}'.format(args.source, group)
-        tgroup = '{}/{}'.format(args.featgen, group)
+        tgroup = '{}_{}/{}'.format(args.source, args.featgen, group)
         print('Processing {}: group = {} to group = {}'.format(filename,
               fgroup, tgroup))
         epochs = du.read_data_from_hdf5(filename, fgroup)
