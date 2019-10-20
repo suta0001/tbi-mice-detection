@@ -1,3 +1,4 @@
+import sklearn.ensemble
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras import layers
 import tensorflow.keras.backend as K
@@ -46,6 +47,12 @@ def get_baseline_convolutional_encoder(filters, embedding_dimension,
     encoder.add(layers.Dense(embedding_dimension))
 
     return encoder
+
+
+def get_ml_model(ml_model):
+    if ml_model == 'rf':
+        model = sklearn.ensemble.RandomForestClassifier(n_estimators=100)
+    return model
 
 
 def build_siamese_net(encoder, input_shape,
