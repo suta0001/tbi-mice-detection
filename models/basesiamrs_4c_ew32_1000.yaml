@@ -1,0 +1,12 @@
+config_name: basesiamrs_4c_ew32_1000
+
+# training parameters
+epochs: 1000 
+num_samples: 500000 
+test_percent: 20 
+
+# model parameters
+dropout: 0.0
+embedding_dimension: 64
+filters: 128
+
