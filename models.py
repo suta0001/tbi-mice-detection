@@ -1,4 +1,5 @@
-import sklearn
+import sklearn.ensemble
+import sklearn.neighbors
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras import layers
 import tensorflow.keras.backend as K
