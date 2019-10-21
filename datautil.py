@@ -42,6 +42,16 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
     return data_epochs, labels
 
 
+def calc_average_features(data_epochs, labels, num_classes):
+    data_epochs = np.array(data_epochs)
+    labels = np.array(labels, dtype=int)
+    avg_features = np.zeros((num_classes, len(data_epochs[0])))
+    for i in range(num_classes):
+        temp_epochs = data_epochs[labels == i]
+        avg_features[i] = np.mean(temp_epochs, axis=0)
+    return avg_features
+
+
 def create_epochs(time_window_in_s=4, edf_filename=None,
                   stage_filename=None, num_classes=4, overlap=True):
     """Create EEG and stage epochs from an EDF file and its associated
