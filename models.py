@@ -1,13 +1,12 @@
 import sklearn.ensemble
 import sklearn.neighbors
-from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras import layers
-import tensorflow.keras.backend as K
+import tensorflow as tf
 
 
 def get_baseline_convolutional_encoder(filters, embedding_dimension,
                                        input_shape=None, dropout=0.05):
-    encoder = Sequential()
+    encoder = tf.keras.models.Sequential()
+    layers = tf.keras.layers
 
     # Initial conv
     if input_shape is None:
@@ -50,8 +49,27 @@ def get_baseline_convolutional_encoder(filters, embedding_dimension,
     return encoder
 
 
+def get_ffnn3hl():
+    # hardcoded for siamese with 64 features
+    num_features = 64
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(8 * num_features, input_dim=num_features,
+                              activation=tf.nn.leaky_relu),
+        tf.keras.layers.Dense(4 * num_features, activation=tf.nn.leaky_relu),
+        tf.keras.layers.Dense(2 * num_features, activation=tf.nn.leaky_relu),
+        tf.keras.layers.Dense(4, activation=tf.nn.softmax)
+    ])
+    # compile the model
+    model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
+
 def get_ml_model(ml_model):
-    if ml_model == 'knn':
+    if ml_model == 'ffnn3hl':
+        model = get_ffnn3hl()
+    elif ml_model == 'knn':
         model = sklearn.neighbors.KNeighborsClassifier()
     elif ml_model == 'rf':
         model = sklearn.ensemble.RandomForestClassifier(n_estimators=100)
@@ -64,7 +82,8 @@ def build_siamese_net(encoder, input_shape,
                                'uniform_l1', 'weighted_l1',
                                'dot_product', 'cosine_distance',
                                'uni_euc_cont_loss')
-
+    layers = tf.keras.layers
+    K = tf.keras.backend
     input_1 = layers.Input(input_shape)
     input_2 = layers.Input(input_shape)
 
@@ -105,6 +124,6 @@ def build_siamese_net(encoder, input_shape,
     else:
         raise NotImplementedError
 
-    siamese = Model(inputs=[input_1, input_2], outputs=output)
+    siamese = tf.keras.models.Model(inputs=[input_1, input_2], outputs=output)
 
     return siamese

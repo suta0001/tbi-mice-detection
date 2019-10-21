@@ -18,7 +18,8 @@ parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
                              'siamesers'], help='applied feature generator')
 parser.add_argument('model', default=None,
-                    choices=['rf', 'knn'], help='machine-learning model')
+                    choices=['ffnn3hl', 'knn', 'rf'],
+                    help='machine-learning model')
 args = parser.parse_args()
 
 # set up file location paths
@@ -55,7 +56,10 @@ for fold, dataset_fold in enumerate(dataset_folds):
     clf = models.get_ml_model(args.model)
 
     # train classifier
-    clf.fit(train_epochs, train_labels)
+    if args.model == 'ffnn3hl':
+        clf.fit(train_epochs, train_labels, 16, epochs=50, verbose=0)
+    else:
+        clf.fit(train_epochs, train_labels)
 
     # make prediction
     predict_labels = clf.predict(test_epochs)
