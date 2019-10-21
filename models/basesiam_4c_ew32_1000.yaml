@@ -1,0 +1,12 @@
+config_name: basesiam_4c_ew32_1000
+
+# training parameters
+epochs: 1000 
+num_train_samples: 500000 
+num_test_samples: 100000 
+
+# model parameters
+dropout: 0.0
+embedding_dimension: 64
+filters: 128
+
