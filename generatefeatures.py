@@ -13,7 +13,8 @@ parser.add_argument('source', default=None,
                     help='source of epochs to be processed')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
-                             'siamesers'], help='feature generator')
+                             'siamesers', 'siamdist', 'siamrsdist'],
+                    help='feature generator')
 args = parser.parse_args()
 
 # set up file location paths
