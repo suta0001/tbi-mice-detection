@@ -18,7 +18,7 @@ parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
                              'siamesers'], help='applied feature generator')
 parser.add_argument('model', default=None,
-                    choices=['rf'], help='machine-learning model')
+                    choices=['rf', 'knn'], help='machine-learning model')
 args = parser.parse_args()
 
 # set up file location paths
