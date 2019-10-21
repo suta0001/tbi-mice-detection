@@ -3,9 +3,9 @@ import networkx as nx
 import numpy as np
 import pyentrp.entropy as entropy
 import pywt
+from scipy.signal import decimate
 from scipy.stats import kurtosis
 from scipy.stats import skew
-import sourcedata as sd
 import spectralanalysis as sa
 import statistics
 import tensorflow as tf
@@ -165,13 +165,13 @@ def generate_embeddings(eeg_epochs, model_path):
 def process(eeg_epochs, method):
     if method == 'pe':
         op = calc_permutation_entropy
-        kwargs = {orders: [3, 5, 7], delays: [1, 5, 10]}
+        kwargs = {'orders': [3, 5, 7], 'delays': [1, 5, 10]}
     elif method == 'vg':
         op = calc_vg_features
-        kwargs = {max_degree: 11}
+        kwargs = {'max_degree': 11}
     elif method == 'spectral':
         op = calc_spectral_features
-        kwargs = {fs: 256}
+        kwargs = {'fs': 256}
     elif method == 'timed':
         op = calc_time_domain_features
         kwargs = {}
@@ -180,8 +180,8 @@ def process(eeg_epochs, method):
         kwargs = {}
     elif method == 'siamese':
         op = generate_embeddings
-        kwargs = {model_path: 'models/basesiam_4c_ew32_1000_0_best.h5'}
+        kwargs = {'model_path': 'models/basesiam_4c_ew32_1000_0_best.h5'}
     elif method == 'siamesers':
         op = generate_embeddings
-        kwargs = {model_path: 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
+        kwargs = {'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
     return op(eeg_epochs, op, **kwargs)
