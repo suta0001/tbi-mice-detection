@@ -16,7 +16,8 @@ parser.add_argument('pp_step', default=None,
                     help='applied preprocessing step')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
-                             'siamesers'], help='applied feature generator')
+                             'siamesers', 'siamdist'],
+                    help='applied feature generator')
 parser.add_argument('model', default=None,
                     choices=['ffnn3hl', 'knn', 'rf'],
                     help='machine-learning model')
