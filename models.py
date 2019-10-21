@@ -1,4 +1,4 @@
-import sklearn.ensemble
+import sklearn
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras import layers
 import tensorflow.keras.backend as K
@@ -50,7 +50,9 @@ def get_baseline_convolutional_encoder(filters, embedding_dimension,
 
 
 def get_ml_model(ml_model):
-    if ml_model == 'rf':
+    if ml_model == 'knn':
+        model = sklearn.neighbors.KNeighborsClassifier()
+    elif ml_model == 'rf':
         model = sklearn.ensemble.RandomForestClassifier(n_estimators=100)
     return model
 
