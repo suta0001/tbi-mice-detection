@@ -184,4 +184,4 @@ def process(eeg_epochs, method):
     elif method == 'siamesers':
         op = generate_embeddings
         kwargs = {'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
-    return op(eeg_epochs, op, **kwargs)
+    return op(eeg_epochs, **kwargs)
