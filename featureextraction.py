@@ -158,7 +158,7 @@ def generate_embeddings(eeg_epochs, model_path):
                       metrics=['accuracy'])
         model.load_weights(model_path, by_name=True)
     shape = (num_samples, num_tsteps, 1)
-    features = model.predict(np.array(decimate(eeg_epochs, 4)).reshape(shape))
+    features = model.predict(np.array(eeg_epochs).reshape(shape))
     return features
 
 
