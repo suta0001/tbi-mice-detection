@@ -64,7 +64,8 @@ for fold, dataset_fold in enumerate(dataset_folds):
 
     # make prediction
     predict_labels = clf.predict(test_epochs)
-
+    if args.model == 'ffnn3hl':
+        predict_labels = predict_labels.argmax(axis=1)
     # calculate accuracy score
     accuracy = accuracy_score(test_labels, predict_labels)
     accuracies.append(accuracy)
