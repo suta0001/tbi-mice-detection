@@ -1,3 +1,4 @@
+import datautil as du
 from models import get_baseline_convolutional_encoder, build_siamese_net
 import networkx as nx
 import numpy as np
@@ -14,7 +15,20 @@ import visibilitygraphs as vg
 
 
 def calc_distance_features(eeg_epochs, source, model_path):
-    
+    # hardcoded is the assumption that num_classes = 4 and
+    # epoch_width_in_s = 32
+    avg_features = np.array(du.read_data('avg_{}_features.csv'.format(source)))
+    siamese_features = generate_embeddings(eeg_epochs, model_path)
+    features = []
+    for siam_feature in siamese_features:
+        feature = []
+        for avg_feature in avg_features:
+            distance = siam_feature - avg_feature
+            feature.append(np.sqrt(np.sum(np.square(distance))))
+        features.append(feature)
+    return features
+
+
 def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
     features = []
     for eeg_epoch in eeg_epochs:
@@ -146,6 +160,8 @@ def calc_wavelet_pe_features(eeg_epochs):
 def generate_embeddings(eeg_epochs, model_path):
     # due to tensorflow/keras issue, we cannot load model directly from file
     # so, we are forced to hardcode the model
+    # also hardcoded is the assumption that num_classes = 4 and
+    # epoch_width_in_s = 32
     filters = 128
     embedding_dimension = 64
     dropout = 0.0
@@ -192,6 +208,6 @@ def process(eeg_epochs, method):
                   'model_path': 'models/basesiam_4c_ew32_1000_0_best.h5'}
     elif method == 'siamrsdist':
         op = calc_distance_features
-        kwargs = {'source': 'siamesers'
+        kwargs = {'source': 'siamesers',
                   'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
     return op(eeg_epochs, **kwargs)
