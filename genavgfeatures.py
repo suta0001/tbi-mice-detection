@@ -30,7 +30,7 @@ dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 data_epochs, labels = du.build_dataset(epochs_path,
                                        args.num_classes,
                                        args.eeg_epoch_width_in_s,
-                                       args.pp_step,
+                                       args.source,
                                        args.featgen,
                                        dataset_folds[0])
 avg_features = du.calc_average_features(data_epochs, labels, args.num_classes)
