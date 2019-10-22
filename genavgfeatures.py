@@ -34,4 +34,4 @@ data_epochs, labels = du.build_dataset(epochs_path,
                                        args.featgen,
                                        dataset_folds[0])
 avg_features = du.calc_average_features(data_epochs, labels, args.num_classes)
-du.write_data('avg_siam_features.csv', avg_features)
+du.write_data('avg_{}_features.csv'.format(args.featgen), avg_features)
