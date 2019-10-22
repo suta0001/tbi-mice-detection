@@ -88,9 +88,9 @@ for fold in range(1):
     filepath = 'models/{}_{}_best.h5'.format(config_params['config_name'],
                                              str(fold))
     ckpt_best = tf.keras.callbacks.ModelCheckpoint(filepath,
-                                                   monitor='val_acc',
+                                                   monitor='val_loss',
                                                    save_best_only=True,
-                                                   mode='max')
+                                                   mode='min')
     filepath = 'models/{}_{}_'.format(config_params['config_name'],
                                       str(fold))
     filepath += '{epoch:04d}.h5'
