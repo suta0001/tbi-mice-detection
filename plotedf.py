@@ -1,17 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import preprocess as pp
+# import preprocess as pp
 import pyedflib
 import statistics
 
 
 # set up file location path
+#edf_path = '/Users/sutandia/Downloads'
 edf_path = 'data/edf/'
-
 # load EEG signals
 eeg_signals = []
-for edf_filename in ['TBI106_BL5.edf']:  # os.listdir(edf_path):
+for edf_filename in os.listdir(edf_path):
     with pyedflib.EdfReader(edf_path + edf_filename) as edf_file:
         eeg_signal = edf_file.readSignal(0)
         # print(edf_filename + ': ' + ' ' +
@@ -20,7 +20,7 @@ for edf_filename in ['TBI106_BL5.edf']:  # os.listdir(edf_path):
         #       'min = ' + str(np.amin(eeg_signal)) + ' ' +
         #       'max = ' + str(np.amax(eeg_signal)))
     eeg_signals.append(eeg_signal)
-eeg_signals.append(pp.awica(eeg_signals[0]))
+# eeg_signals.append(pp.awica(eeg_signals[0]))
 # plot all EEG signals for a given range
 tstart = 0
 tend = len(eeg_signals[0])

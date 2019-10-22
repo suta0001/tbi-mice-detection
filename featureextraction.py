@@ -13,6 +13,8 @@ import timedanalysis as ta
 import visibilitygraphs as vg
 
 
+def calc_distance_features(eeg_epochs, source, model_path):
+    
 def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
     features = []
     for eeg_epoch in eeg_epochs:
@@ -184,4 +186,12 @@ def process(eeg_epochs, method):
     elif method == 'siamesers':
         op = generate_embeddings
         kwargs = {'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
+    elif method == 'siamdist':
+        op = calc_distance_features
+        kwargs = {'source': 'siamese',
+                  'model_path': 'models/basesiam_4c_ew32_1000_0_best.h5'}
+    elif method == 'siamrsdist':
+        op = calc_distance_features
+        kwargs = {'source': 'siamesers'
+                  'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
     return op(eeg_epochs, **kwargs)

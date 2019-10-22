@@ -1,8 +1,0 @@
-config_name: baseline_4c_ew4
-
-# training parameters
-# epochs is selected to end with highest validation accuracy
-epochs: 100 
-
-# model parameters
-kernel_size: 5
