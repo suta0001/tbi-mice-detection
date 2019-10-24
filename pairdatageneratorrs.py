@@ -212,8 +212,7 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
                     index0 = random.sample(list(range(num_epoch_samples0)),
                                            temp_count)
                     index1 = random.sample(list(range(num_epoch_samples1)),
-                                           int(np.ceil(num_pair_samples /
-                                               temp_count)))
+                                           temp_count)
                     index_pair = random.sample(list(product(index0, index1)),
                                                num_pair_samples)
                     index_pair = [list(t) for t in zip(*index_pair)]
