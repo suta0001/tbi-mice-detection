@@ -1,13 +1,31 @@
 import sklearn.ensemble
 import sklearn.neighbors
-import tensorflow as tf
+from tensorflow.python.keras import backend as K
+from tensorflow.python.keras import layers
+from tensorflow.python.keras import Model
+from tensorflow.python.keras import Sequential
+
+
+class EuclideanDistance(layers.Layer):
+    def __init__(self, **kwargs):
+        super(EuclideanDistance, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        if len(input_shape) != 2:
+            raise ValueError('Must have 2 inputs.')
+        super(EuclideanDistance, self).build(input_shape)
+
+    def call(self, inputs):
+        return K.sqrt(K.sum(K.square(inputs[0] - inputs[1]),
+                            axis=1, keepdims=True))
+
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], 1, 1)
 
 
 def get_baseline_convolutional_encoder(filters, embedding_dimension,
                                        input_shape=None, dropout=0.05):
-    encoder = tf.keras.models.Sequential()
-    layers = tf.keras.layers
-
+    encoder = Sequential()
     # Initial conv
     if input_shape is None:
         # In this case we are using the encoder as part of a siamese network
@@ -52,12 +70,12 @@ def get_baseline_convolutional_encoder(filters, embedding_dimension,
 def get_ffnn3hl():
     # hardcoded for siamese with 64 features
     num_features = 64
-    model = tf.keras.Sequential([
-        tf.keras.layers.Dense(8 * num_features, input_dim=num_features,
-                              activation=tf.nn.leaky_relu),
-        tf.keras.layers.Dense(4 * num_features, activation=tf.nn.leaky_relu),
-        tf.keras.layers.Dense(2 * num_features, activation=tf.nn.leaky_relu),
-        tf.keras.layers.Dense(4, activation=tf.nn.softmax)
+    model = Sequential([
+        layers.Dense(8 * num_features, input_dim=num_features,
+                     activation='relu'),
+        layers.Dense(4 * num_features, activation='relu'),
+        layers.Dense(2 * num_features, activation='relu'),
+        layers.Dense(4, activation='softmax')
     ])
     # compile the model
     model.compile(optimizer='adam',
@@ -82,8 +100,6 @@ def build_siamese_net(encoder, input_shape,
                                'uniform_l1', 'weighted_l1',
                                'dot_product', 'cosine_distance',
                                'uni_euc_cont_loss')
-    layers = tf.keras.layers
-    K = tf.keras.backend
     input_1 = layers.Input(input_shape)
     input_2 = layers.Input(input_shape)
 
@@ -116,14 +132,10 @@ def build_siamese_net(encoder, input_shape,
         # cosine_distance = layers.Subtract()([ones, cosine_proximity])
         # output = layers.Dense(1, activation='sigmoid')(cosine_distance)
     elif distance_metric == 'uni_euc_cont_loss':
-        embedded_distance = layers.Subtract(name='subtract_embeddings')(
-            [encoded_1, encoded_2])
-        output = layers.Lambda(
-            lambda x: K.sqrt(K.sum(K.square(x), axis=1, keepdims=True)),
-        )(embedded_distance)
+        output = EuclideanDistance(name='distance')([encoded_1, encoded_2])
     else:
         raise NotImplementedError
 
-    siamese = tf.keras.models.Model(inputs=[input_1, input_2], outputs=output)
+    siamese = Model(inputs=[input_1, input_2], outputs=output)
 
     return siamese
