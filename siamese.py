@@ -36,6 +36,7 @@ def contrastive_loss(y_true, y_pred):
     return K.mean((1 - y_true) * K.square(y_pred) + y_true *
                   K.square(K.maximum(margin - y_pred, 0)))
 
+
 # load previously saved model if requested
 if len(sys.argv) == 6:
     print('loading previous model = ', sys.argv[5])
@@ -52,7 +53,6 @@ else:
                                                      embedding_dimension,
                                                      dropout=dropout)
         model = build_siamese_net(encoder, (num_tsteps, 1),
-        #                          distance_metric='uniform_euclidean')
                                   distance_metric='uni_euc_cont_loss')
         # define optimizers
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
@@ -61,7 +61,6 @@ else:
     pmodel = tf.keras.utils.multi_gpu_model(model, gpus=3)
     # pmodel = model
     pmodel.compile(optimizer=optimizer,
-    #               loss='binary_crossentropy',
                    loss=contrastive_loss,
                    metrics=['accuracy'])
 
@@ -76,8 +75,10 @@ epochs = config_params['epochs']
 
 # set up tensorboard
 tensorboard = tf.keras.callbacks.TensorBoard()
-log_dir = 'tb_logs/{}_{}'.format(config_params['config_name'],
-                                 config_params['epochs'])
+log_dir = 'tb_logs/{}_{}c_ew{}_{}'.format(config_params['config_name'],
+                                          config_params['num_classes'],
+                                          config_params['epoch_width'],
+                                          config_params['epochs'])
 tensorboard.log_dir = log_dir
 # tensorboard.histogram_freq = epochs / 1
 # tensorboard.write_grads = True
@@ -89,14 +90,22 @@ data_path = 'data/epochs_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 for fold in range(1):
     # set up checkpoints
-    filepath = 'models/{}_{}_best.h5'.format(config_params['config_name'],
-                                             str(fold))
+    filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
+        config_params['config_name'],
+        config_params['num_classes'],
+        config_params['epoch_width'],
+        config_params['epochs'],
+        str(fold))
     ckpt_best = tf.keras.callbacks.ModelCheckpoint(filepath,
                                                    monitor='val_loss',
                                                    save_best_only=True,
                                                    mode='min')
-    filepath = 'models/{}_{}_'.format(config_params['config_name'],
-                                      str(fold))
+    filepath = 'models/{}_{}c_ew{}_{}_{}'.format(
+        config_params['config_name'],
+        config_params['num_classes'],
+        config_params['epoch_width'],
+        config_params['epochs'],
+        str(fold))
     filepath += '{epoch:04d}.h5'
     ckpt_reg = tf.keras.callbacks.ModelCheckpoint(filepath, period=5)
 

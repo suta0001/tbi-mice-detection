@@ -1,4 +1,7 @@
-config_name: basesiamrs_4c_ew32_1000
+# general setup
+config_name: basesiamrs
+num_classes: 4
+epoch_width: 32
 
 # training parameters
 epochs: 1000 

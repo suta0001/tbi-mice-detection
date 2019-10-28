@@ -12,11 +12,12 @@ import statistics
 import tensorflow as tf
 import timedanalysis as ta
 import visibilitygraphs as vg
+import yaml
 
 
 def calc_distance_features(eeg_epochs, source, model_path):
-    # hardcoded is the assumption that num_classes = 4 and
-    # epoch_width_in_s = 32
+    with open(model_path) as cfile:
+        config_params = yaml.safe_load(cfile)
     avg_features = np.array(du.read_data('avg_{}_features.csv'.format(source)))
     siamese_features = generate_embeddings(eeg_epochs, model_path)
     features = []
@@ -160,11 +161,11 @@ def calc_wavelet_pe_features(eeg_epochs):
 def generate_embeddings(eeg_epochs, model_path):
     # due to tensorflow/keras issue, we cannot load model directly from file
     # so, we are forced to hardcode the model
-    # also hardcoded is the assumption that num_classes = 4 and
-    # epoch_width_in_s = 32
-    filters = 128
-    embedding_dimension = 64
-    dropout = 0.0
+    with open(model_path) as cfile:
+        config_params = yaml.safe_load(cfile)
+    filters = config_params['filters']
+    embedding_dimension = config_params['embedding_dimension']
+    dropout = config_params['dropout']
     num_tsteps = len(eeg_epochs[0])
     num_samples = len(eeg_epochs)
     with tf.device('/cpu:0'):
@@ -172,9 +173,15 @@ def generate_embeddings(eeg_epochs, model_path):
                                                    embedding_dimension,
                                                    dropout=dropout,
                                                    input_shape=(num_tsteps, 1))
-        model.compile(optimizer='Adam', loss='binary_crossentropy',
-                      metrics=['accuracy'])
-        model.load_weights(model_path, by_name=True)
+        model = build_siamese_net(model, (num_tsteps, 1),
+                                  distance_metric='uni_euc_cont_loss')
+        net_model = 'models/{}_{}c_ew{}_{}_0_best.h5'
+        net_model.format(config_params['config_name'],
+                         config_params['num_classes'],
+                         config_params['epoch_width'],
+                         config_params['epochs'])
+        model.load_weights(model_path)
+        model = model.layers[2]
     shape = (num_samples, num_tsteps, 1)
     features = model.predict(np.array(eeg_epochs).reshape(shape))
     return features
@@ -198,16 +205,16 @@ def process(eeg_epochs, method):
         kwargs = {}
     elif method == 'siamese':
         op = generate_embeddings
-        kwargs = {'model_path': 'models/basesiam_4c_ew32_1000_0_best.h5'}
+        kwargs = {'model_path': 'models/basesiam_4c_ew32_1000.yaml'}
     elif method == 'siamesers':
         op = generate_embeddings
-        kwargs = {'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
+        kwargs = {'model_path': 'models/basesiamrs_4c_ew32_1000.yaml'}
     elif method == 'siamdist':
         op = calc_distance_features
         kwargs = {'source': 'siamese',
-                  'model_path': 'models/basesiam_4c_ew32_1000_0_best.h5'}
+                  'model_path': 'models/basesiam_4c_ew32_1000.yaml'}
     elif method == 'siamrsdist':
         op = calc_distance_features
         kwargs = {'source': 'siamesers',
-                  'model_path': 'models/basesiamrs_4c_ew32_1000_0_best.h5'}
+                  'model_path': 'models/basesiamrs_4c_ew32_1000.yaml'}
     return op(eeg_epochs, **kwargs)
