@@ -176,11 +176,11 @@ def generate_embeddings(eeg_epochs, model_path):
         model = build_siamese_net(model, (num_tsteps, 1),
                                   distance_metric='uni_euc_cont_loss')
         net_model = 'models/{}_{}c_ew{}_{}_0_best.h5'
-        net_model.format(config_params['config_name'],
-                         config_params['num_classes'],
-                         config_params['epoch_width'],
-                         config_params['epochs'])
-        model.load_weights(model_path)
+        net_model = net_model.format(config_params['config_name'],
+                                     config_params['num_classes'],
+                                     config_params['epoch_width'],
+                                     config_params['epochs'])
+        model.load_weights(net_model)
         model = model.layers[2]
     shape = (num_samples, num_tsteps, 1)
     features = model.predict(np.array(eeg_epochs).reshape(shape))
@@ -216,5 +216,5 @@ def process(eeg_epochs, method):
     elif method == 'siamrsdist':
         op = calc_distance_features
         kwargs = {'source': 'siamesers',
-                  'model_path': 'models/basesiamrs_4c_ew32_1000.yaml'}
+                  'model_path': 'models/siamrs1_4c_ew32_50.yaml'}
     return op(eeg_epochs, **kwargs)
