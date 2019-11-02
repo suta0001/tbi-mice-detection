@@ -1,0 +1,15 @@
+# general setup
+config_name: basesiamrs
+num_classes: 4
+epoch_width: 32
+
+# training parameters
+epochs: 50 
+num_samples: 500000 
+test_percent: 20 
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 64
+filters: 128
+
