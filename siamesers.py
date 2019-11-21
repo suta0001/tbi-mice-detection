@@ -67,7 +67,7 @@ else:
 # set up training parameters
 num_samples = config_params['num_samples']
 test_percent = config_params['test_percent']
-batch_size = 1024 * 8 * decimate_factor // eeg_epoch_width_in_s
+batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
 epochs = config_params['epochs']
 
 # set up tensorboard

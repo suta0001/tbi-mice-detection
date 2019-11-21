@@ -4,6 +4,7 @@ from tensorflow.python.keras import backend as K
 from tensorflow.python.keras import layers
 from tensorflow.python.keras import Model
 from tensorflow.python.keras import Sequential
+from xgboost import XGBClassifier
 
 
 class EuclideanDistance(layers.Layer):
@@ -91,6 +92,8 @@ def get_ml_model(ml_model):
         model = sklearn.neighbors.KNeighborsClassifier()
     elif ml_model == 'rf':
         model = sklearn.ensemble.RandomForestClassifier(n_estimators=100)
+    elif ml_model == 'xgb':
+        model = XGBClassifier()
     return model
 
 
