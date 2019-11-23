@@ -19,7 +19,7 @@ parser.add_argument('featgen', default=None,
                              'siamesers', 'siamdist', 'siamrsdist'],
                     help='applied feature generator')
 parser.add_argument('model', default=None,
-                    choices=['ffnn3hl', 'knn', 'rf'],
+                    choices=['ffnn3hl', 'knn', 'rf', 'xgb'],
                     help='machine-learning model')
 args = parser.parse_args()
 

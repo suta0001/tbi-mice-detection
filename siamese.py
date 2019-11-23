@@ -67,7 +67,7 @@ else:
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
-batch_size = 1024 * 8 * decimate_factor // eeg_epoch_width_in_s
+batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
 train_batch_size = min(batch_size, num_train_samples)
 test_batch_size = min(batch_size, num_test_samples)
 
