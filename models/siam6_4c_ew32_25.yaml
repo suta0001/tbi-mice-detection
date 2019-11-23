@@ -1,5 +1,5 @@
 # general setup
-config_name: siam2
+config_name: siam6
 num_classes: 4
 epoch_width: 32
 
