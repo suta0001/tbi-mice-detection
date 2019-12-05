@@ -31,7 +31,7 @@ reports = []
 
 
 def contrastive_loss(y_true, y_pred):
-    margin = 1.25
+    margin = config_params['margin']
     K = tf.keras.backend
     return K.mean((1 - y_true) * K.square(y_pred) + y_true *
                   K.square(K.maximum(margin - y_pred, 0)))
@@ -58,8 +58,8 @@ else:
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
 
     # compile the model
-    # pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
-    pmodel = model
+    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+    # pmodel = model
     pmodel.compile(optimizer=optimizer,
                    loss=contrastive_loss,
                    metrics=['accuracy'])
