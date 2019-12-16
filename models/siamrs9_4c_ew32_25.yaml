@@ -1,0 +1,16 @@
+# general setup
+config_name: siamrs9
+num_classes: 4
+epoch_width: 32
+
+# training parameters
+epochs: 25 
+num_samples: 500000 
+test_percent: 20 
+margin: 12.5 
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 4 
+filters: 128
+
