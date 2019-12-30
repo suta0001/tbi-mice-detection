@@ -1,0 +1,16 @@
+# general setup
+config_name: siam11
+num_classes: 4
+epoch_width: 32
+
+# training parameters
+epochs: 25 
+num_train_samples: 500000 
+num_test_samples: 100000 
+margin: 12.5
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 64 
+filters: 128
+
