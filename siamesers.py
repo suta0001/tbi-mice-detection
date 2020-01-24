@@ -37,32 +37,31 @@ def contrastive_loss(y_true, y_pred):
                   K.square(K.maximum(margin - y_pred, 0)))
 
 
-# load previously saved model if requested
-if len(sys.argv) == 6:
-    print('loading previous model = ', sys.argv[5])
-    model = tf.keras.models.load_model(sys.argv[5])
-else:
-    # setup the model
-    # model is from https://github.com/oscarknagg/voicemap
-    filters = config_params['filters']
-    embedding_dimension = config_params['embedding_dimension']
-    dropout = config_params['dropout']
-    num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
-    with tf.device('/cpu:0'):
-        encoder = get_baseline_convolutional_encoder(filters,
-                                                     embedding_dimension,
-                                                     dropout=dropout)
-        model = build_siamese_net(encoder, (num_tsteps, 1),
-                                  distance_metric='uni_euc_cont_loss')
-        # define optimizers
-        optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
+# setup the model
+# model is from https://github.com/oscarknagg/voicemap
+filters = config_params['filters']
+embedding_dimension = config_params['embedding_dimension']
+dropout = config_params['dropout']
+num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
+with tf.device('/cpu:0'):
+    encoder = get_baseline_convolutional_encoder(filters,
+                                                 embedding_dimension,
+                                                 dropout=dropout)
+    model = build_siamese_net(encoder, (num_tsteps, 1),
+                              distance_metric='uni_euc_cont_loss')
+    # define optimizers
+    optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
+    # load previously saved model if requested
+    if len(sys.argv) == 6:
+        print('loading previous model = ', sys.argv[5])
+        model.load_weights(sys.argv[5])
 
-    # compile the model
-    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
-    # pmodel = model
-    pmodel.compile(optimizer=optimizer,
-                   loss=contrastive_loss,
-                   metrics=['accuracy'])
+# compile the model
+pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+# pmodel = model
+pmodel.compile(optimizer=optimizer,
+               loss=contrastive_loss,
+               metrics=['accuracy'])
 
 # set up training parameters
 num_samples = config_params['num_samples']
