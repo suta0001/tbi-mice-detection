@@ -28,10 +28,17 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
         filename = os.path.join(epochs_path,
                                 '{}_BL5_ew{}.h5'.format(species,
                                                         epoch_width_in_s))
-        groups = read_groups_from_hdf5(filename,
-                                       '{}_{}'.format(pp_step, featgen))
+        if featgen is not None:
+            groups = read_groups_from_hdf5(filename,
+                                           '{}_{}'.format(pp_step, featgen))
+        else:
+            groups = read_groups_from_hdf5(filename,
+                                           '{}'.format(pp_step))
         for group in groups:
-            fgroup = '{}_{}/{}'.format(pp_step, featgen, group)
+            if featgen is not None:
+                fgroup = '{}_{}/{}'.format(pp_step, featgen, group)
+            else:
+                fgroup = '{}/{}'.format(pp_step, group)
             temp_epochs = read_data_from_hdf5(filename, fgroup)
             data_epochs.extend(temp_epochs)
             labels += len(temp_epochs) * [get_class_label(num_classes,
