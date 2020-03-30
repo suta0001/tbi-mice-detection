@@ -186,7 +186,7 @@ def generate_embeddings(eeg_epochs, model_path):
     features = []
     for eeg_epoch in eeg_epochs:
         features.append(model.predict(np.array(eeg_epoch).reshape(shape)))
-    return np.array(features)
+    return np.array(features).reshape(num_samples, embedding_dimension)
 
 
 def process(eeg_epochs, method):
