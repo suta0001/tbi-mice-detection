@@ -182,9 +182,11 @@ def generate_embeddings(eeg_epochs, model_path):
                                      config_params['epochs'])
         model.load_weights(net_model)
         model = model.layers[2]
-    shape = (num_samples, num_tsteps, 1)
-    features = model.predict(np.array(eeg_epochs).reshape(shape))
-    return features
+    shape = (1, num_tsteps, 1)
+    features = []
+    for eeg_epoch in eeg_epochs:
+        features.append(model.predict(np.array(eeg_epoch).reshape(shape)))
+    return np.array(features)
 
 
 def process(eeg_epochs, method):
