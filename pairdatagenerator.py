@@ -34,6 +34,7 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         regenerate: if True, new samples will be regenerated
         shuffle: if True, dataset are shuffled after each epoch
         decimate: decimation factor
+        overlap: if True, use overlapping epochs
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  batch_size=32, num_classes=4, num_samples=1024,
