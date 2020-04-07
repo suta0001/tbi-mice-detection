@@ -42,7 +42,7 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  purpose='train', batch_size=32, num_classes=4,
                  num_samples=1024, regenerate=False, shuffle=True, decimate=1,
-                 test_percent=20):
+                 test_percent=20, overlap=True):
         self.file_path = file_path
         self.file_template = file_template
         self.decimate = decimate
@@ -81,9 +81,14 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
 
         # read from existing index file for generated samples
         # if regenerate = False; generate new index file if it does not exist
-        self.out_file = file_template[:-3].format('pairdata') +\
-            '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                     test_percent)
+        if overlap:
+            self.out_file = file_template[:-3].format('pairdata') +\
+                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
+                                         test_percent)
+        else:
+            self.out_file = file_template[:-3].format('pairdata_novl') +\
+                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
+                                         test_percent)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
 

@@ -120,11 +120,13 @@ for fold in range(1):
                                        tbi_set, 'train', batch_size,
                                        num_classes, num_samples,
                                        decimate=decimate_factor,
-                                       test_percent=test_percent)
+                                       test_percent=test_percent,
+                                       overlap=config_params['overlap'])
     test_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
                                       tbi_set, 'test', batch_size, num_classes,
                                       num_samples, decimate=decimate_factor,
-                                      test_percent=test_percent)
+                                      test_percent=test_percent,
+                                      overlap=config_params['overlap'])
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
