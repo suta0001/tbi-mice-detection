@@ -35,12 +35,10 @@ class PairDataGenerator(tf.keras.utils.Sequence):
         shuffle: if True, dataset are shuffled after each epoch
         decimate: decimation factor
         overlap: if True, use overlapping epochs
-        fold: fold number
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  batch_size=32, num_classes=4, num_samples=1024,
-                 regenerate=False, shuffle=True, decimate=1, overlap=True,
-                 fold=0):
+                 regenerate=False, shuffle=True, decimate=1, overlap=True):
         self.file_path = file_path
         self.file_template = file_template
         self.decimate = decimate
@@ -75,16 +73,12 @@ class PairDataGenerator(tf.keras.utils.Sequence):
 
         # read from existing index file for generated samples
         # if regenerate = False; generate new index file if it does not exist
-        assert fold >= 0,\
-            "fold must be 0 or greater"
         if overlap:
             self.out_file = file_template[:-3].format('pairdata') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         fold)
+                '_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples)
         else:
             self.out_file = file_template[:-3].format('pairdata_novl') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         fold)
+                '_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
         self.df = pd.read_hdf(self.out_file, 'pair_index', mode='r')
