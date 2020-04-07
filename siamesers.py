@@ -82,7 +82,10 @@ tensorboard.log_dir = log_dir
 # tensorboard.update_freq = 'epoch'
 
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-data_path = 'data/epochs_{}c'.format(str(num_classes))
+if config_params['overlap'] == 'yes':
+    data_path = 'data/epochs_{}c'.format(str(num_classes))
+elif config_params['overlap'] == 'no':
+    data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 for fold in range(1):
     # set up checkpoints
@@ -128,44 +131,44 @@ for fold in range(1):
                          validation_data=test_gen,
                          max_queue_size=1)
 
-    # calculate accuracy and confusion matrix
-    test_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
-                                      tbi_set, 'test', batch_size, num_classes,
-                                      num_samples, shuffle=False,
-                                      decimate=decimate_factor,
-                                      test_percent=test_percent)
-    predict_labels = pmodel.predict_generator(test_gen,
-                                              max_queue_size=1)
-    predict_labels = predict_labels.argmax(axis=1)
-    test_labels = test_gen.get_labels()
-    test_acc = accuracy_score(test_labels, predict_labels)
-    accuracies.append(test_acc)
-    print('Fold = ' + str(fold) + ' Accuracy = ' +
-          '{:.3f}'.format(test_acc))
-    print(confusion_matrix(test_labels, predict_labels))
+    # # calculate accuracy and confusion matrix
+    # test_gen = dg.PairDataGeneratorRS(data_path, file_template, sham_set,
+    #                                   tbi_set, 'test', batch_size, num_classes,
+    #                                   num_samples, shuffle=False,
+    #                                   decimate=decimate_factor,
+    #                                   test_percent=test_percent)
+    # predict_labels = pmodel.predict_generator(test_gen,
+    #                                           max_queue_size=1)
+    # predict_labels = predict_labels.argmax(axis=1)
+    # test_labels = test_gen.get_labels()
+    # test_acc = accuracy_score(test_labels, predict_labels)
+    # accuracies.append(test_acc)
+    # print('Fold = ' + str(fold) + ' Accuracy = ' +
+    #       '{:.3f}'.format(test_acc))
+    # print(confusion_matrix(test_labels, predict_labels))
 
-    # print report
-    report = classification_report(test_labels, predict_labels,
-                                   target_names=target_names,
-                                   output_dict=True)
-    reports.append(report)
-    print(classification_report(test_labels, predict_labels,
-                                target_names=target_names))
+    # # print report
+    # report = classification_report(test_labels, predict_labels,
+    #                                target_names=target_names,
+    #                                output_dict=True)
+    # reports.append(report)
+    # print(classification_report(test_labels, predict_labels,
+    #                             target_names=target_names))
 
-# print out results summary
-if len(accuracies) > 1:
-    print('Mean  accuracy = ' + '{:.3f}'.format(statistics.mean(accuracies)))
-    print('Stdev accuracy = ' + '{:.3f}'.format(statistics.stdev(accuracies)))
-    for name in target_names:
-        precisions = [reports[i][name]['precision'] for i in range(
-            len(reports))]
-        print('Mean  prec ' + name + '  = ' +
-              '{:.3f}'.format(statistics.mean(precisions)))
-        print('Stdev prec ' + name + '  = ' +
-              '{:.3f}'.format(statistics.stdev(precisions)))
-    for name in target_names:
-        recalls = [reports[i][name]['recall'] for i in range(len(reports))]
-        print('Mean  recll ' + name + ' = ' +
-              '{:.3f}'.format(statistics.mean(recalls)))
-        print('Stdev recll ' + name + ' = ' +
-              '{:.3f}'.format(statistics.stdev(recalls)))
+# # print out results summary
+# if len(accuracies) > 1:
+#     print('Mean  accuracy = ' + '{:.3f}'.format(statistics.mean(accuracies)))
+#     print('Stdev accuracy = ' + '{:.3f}'.format(statistics.stdev(accuracies)))
+#     for name in target_names:
+#         precisions = [reports[i][name]['precision'] for i in range(
+#             len(reports))]
+#         print('Mean  prec ' + name + '  = ' +
+#               '{:.3f}'.format(statistics.mean(precisions)))
+#         print('Stdev prec ' + name + '  = ' +
+#               '{:.3f}'.format(statistics.stdev(precisions)))
+#     for name in target_names:
+#         recalls = [reports[i][name]['recall'] for i in range(len(reports))]
+#         print('Mean  recll ' + name + ' = ' +
+#               '{:.3f}'.format(statistics.mean(recalls)))
+#         print('Stdev recll ' + name + ' = ' +
+#               '{:.3f}'.format(statistics.stdev(recalls)))
