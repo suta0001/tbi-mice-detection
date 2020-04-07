@@ -38,6 +38,7 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         shuffle: if True, dataset are shuffled after each epoch
         decimate: decimation factor
         test_percent: percentage of pair samples used for test set
+        overlap: if True, use overlapping epochs
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  purpose='train', batch_size=32, num_classes=4,
