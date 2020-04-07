@@ -39,11 +39,12 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         decimate: decimation factor
         test_percent: percentage of pair samples used for test set
         overlap: if True, use overlapping epochs
+        fold: fold info for naming file only
     """
     def __init__(self, file_path, file_template, sham_set, tbi_set,
                  purpose='train', batch_size=32, num_classes=4,
                  num_samples=1024, regenerate=False, shuffle=True, decimate=1,
-                 test_percent=20, overlap=True):
+                 test_percent=20, overlap=True, fold=0):
         self.file_path = file_path
         self.file_template = file_template
         self.decimate = decimate
@@ -54,6 +55,8 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         assert test_percent >= 0 and test_percent <= 100,\
             'test_percent must be between 0 and 100'
         self.test_percent = test_percent
+        assert fold >= 0,\
+            'fold must be 0 or above'
 
         # check that num_classes is set to 4
         assert num_classes == 4,\
@@ -84,12 +87,12 @@ class PairDataGeneratorRS(tf.keras.utils.Sequence):
         # if regenerate = False; generate new index file if it does not exist
         if overlap:
             self.out_file = file_template[:-3].format('pairdata') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         test_percent)
+                '_{}_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
+                                            test_percent, fold)
         else:
             self.out_file = file_template[:-3].format('pairdata_novl') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         test_percent)
+                '_{}_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
+                                            test_percent, fold)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
 
