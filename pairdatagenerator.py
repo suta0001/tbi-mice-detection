@@ -79,12 +79,12 @@ class PairDataGenerator(tf.keras.utils.Sequence):
             "fold must be 0 or greater"
         if overlap:
             self.out_file = file_template[:-3].format('pairdata') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         fold)
+                '_{}_{}_{}_f{}.h5'.format(num_classes, batch_size, num_samples,
+                                          fold)
         else:
             self.out_file = file_template[:-3].format('pairdata_novl') +\
-                '_{}_{}_{}_{}.h5'.format(num_classes, batch_size, num_samples,
-                                         fold)
+                '_{}_{}_{}_f{}.h5'.format(num_classes, batch_size, num_samples,
+                                          fold)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_pairs()
         self.df = pd.read_hdf(self.out_file, 'pair_index', mode='r')
