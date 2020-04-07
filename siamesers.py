@@ -82,9 +82,9 @@ tensorboard.log_dir = log_dir
 # tensorboard.update_freq = 'epoch'
 
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-if config_params['overlap'] == 'yes':
+if config_params['overlap']:
     data_path = 'data/epochs_{}c'.format(str(num_classes))
-elif config_params['overlap'] == 'no':
+else:
     data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 for fold in range(1):
