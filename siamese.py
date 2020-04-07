@@ -126,11 +126,13 @@ for fold in range(1):
                                      train_tbi_set, train_batch_size,
                                      num_classes, num_train_samples,
                                      decimate=decimate_factor,
-                                     overlap=config_params['overlap'])
+                                     overlap=config_params['overlap'],
+                                     fold=fold)
     test_gen = dg.PairDataGenerator(data_path, file_template, test_sham_set,
                                     test_tbi_set, test_batch_size, num_classes,
                                     num_test_samples, decimate=decimate_factor,
-                                    overlap=config_params['overlap'])
+                                    overlap=config_params['overlap'],
+                                    fold=fold)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
