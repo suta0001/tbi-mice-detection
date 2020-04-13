@@ -75,11 +75,6 @@ epochs = config_params['epochs']
 
 # set up tensorboard
 tensorboard = tf.keras.callbacks.TensorBoard()
-log_dir = 'tb_logs/{}_{}c_ew{}_{}'.format(config_params['config_name'],
-                                          config_params['num_classes'],
-                                          config_params['epoch_width'],
-                                          config_params['epochs'])
-tensorboard.log_dir = log_dir
 # tensorboard.histogram_freq = epochs / 1
 # tensorboard.write_grads = True
 # tensorboard.batch_size = batch_size
@@ -92,6 +87,13 @@ else:
     data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 for fold in range(1):
+    # set up log directory
+    log_dir = 'tb_logs/{}_{}c_ew{}_{}_{}'.format(config_params['config_name'],
+                                                 config_params['num_classes'],
+                                                 config_params['epoch_width'],
+                                                 config_params['epochs'],
+                                                 str(fold))
+    tensorboard.log_dir = log_dir
     # set up checkpoints
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
