@@ -30,7 +30,7 @@ models_path = 'models'
 #                 'siamrs12_4c_ew4_25.yaml',
 #                 'siamrs12_4c_ew32_25.yaml',
 #                 'siamrs13_4c_ew32_25.yaml']
-config_files = ['siamrs12_4c_ew32_25.yaml']
+config_files = ['siamrs14_4c_ew32_25.yaml']
 train_outfile = 'trainrs_4c_metrics.csv'
 all_outfile = 'allrs_4c_metrics.csv'
 
@@ -57,7 +57,10 @@ def eval_performance(models_path, config_file):
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     num_samples = config_params['num_samples']
     test_percent = config_params['test_percent']
-    pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}_{}.h5'
+    if config_params['overlap']:
+        pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}_{}.h5'
+    else:
+        pairdata_file = 'pairdata_novl_BL5_ew{}_{}_{}_{}_{}.h5'
     pairdata_file = pairdata_file.format(eeg_epoch_width_in_s,
                                          num_classes,
                                          batch_size,
