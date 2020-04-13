@@ -55,7 +55,10 @@ def eval_performance(models_path, config_file):
     with open(model_file) as cfile:
         config_params = yaml.safe_load(cfile)
     num_samples = config_params['num_train_samples']
-    pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}.h5'
+    if config_params['overlap']:
+        pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}.h5'
+    else:
+        pairdata_file = 'pairdata_novl_BL5_ew{}_{}_{}_{}.h5'
     pairdata_file = pairdata_file.format(eeg_epoch_width_in_s,
                                          num_classes,
                                          batch_size,
