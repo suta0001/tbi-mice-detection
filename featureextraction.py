@@ -158,7 +158,7 @@ def calc_wavelet_pe_features(eeg_epochs):
     return features
 
 
-def generate_embeddings(eeg_epochs, model_path):
+def generate_embeddings(eeg_epochs, model_path, fold=0):
     # due to tensorflow/keras issue, we cannot load model directly from file
     # so, we are forced to hardcode the model
     with open(model_path) as cfile:
@@ -175,11 +175,12 @@ def generate_embeddings(eeg_epochs, model_path):
                                                    input_shape=(num_tsteps, 1))
         model = build_siamese_net(model, (num_tsteps, 1),
                                   distance_metric='uni_euc_cont_loss')
-        net_model = 'models/{}_{}c_ew{}_{}_0_best.h5'
+        net_model = 'models/{}_{}c_ew{}_{}_{}_best.h5'
         net_model = net_model.format(config_params['config_name'],
                                      config_params['num_classes'],
                                      config_params['epoch_width'],
-                                     config_params['epochs'])
+                                     config_params['epochs'],
+                                     fold)
         model.load_weights(net_model)
         model = model.layers[2]
     shape = (1, num_tsteps, 1)
