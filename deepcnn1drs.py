@@ -128,7 +128,7 @@ for fold in range(1):
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
-                                test_percent=test_percent)
+                                test_percent=100)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
