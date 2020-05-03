@@ -38,7 +38,8 @@ num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
 with tf.device('/cpu:0'):
     model = get_baseline_convolutional_encoder(filters,
                                                embedding_dimension,
-                                               dropout=dropout)
+                                               (num_tsteps, 1),
+                                               dropout)
     model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
 
     # define optimizers
