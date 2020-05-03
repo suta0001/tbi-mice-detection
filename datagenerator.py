@@ -43,11 +43,6 @@ class DataGenerator(tf.keras.utils.Sequence):
         assert test_percent >= 0 and test_percent <= 100,\
             'test_percent must be between 0 and 100'
         self.test_percent = test_percent
-        self.num_samples = self._get_total_num_samples()
-        assert batch_size <= self.num_samples,\
-            'Batch size must be <= number of (train or test) samples'
-        self.batch_size = batch_size
-
         # check that num_classes is set to 4
         assert num_classes == 4,\
             'Only num_classes = 4 is supported currently'
@@ -56,6 +51,10 @@ class DataGenerator(tf.keras.utils.Sequence):
             self.stages = ['wake', 'sleep']
         elif num_classes == 6:
             self.stages = ['wake', 'nrem', 'rem']
+        self.num_samples = self._get_total_num_samples()
+        assert batch_size <= self.num_samples,\
+            'Batch size must be <= number of (train or test) samples'
+        self.batch_size = batch_size
 
         # read from existing index file for generated samples
         # if regenerate = False; generate new index file if it does not exist
