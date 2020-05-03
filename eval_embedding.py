@@ -17,7 +17,6 @@ num_classes = 4
 target_names = ['SW', 'SS', 'TW', 'TS']
 decimate_factor = 4
 batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
-data_path = 'data/epochs_{}c'.format(str(num_classes))
 models_path = 'models'
 # config_files = ['basesiam_4c_ew32_25.yaml',
 #                 'siam1_4c_ew32_25.yaml',
@@ -57,8 +56,10 @@ def eval_performance(models_path, config_file, fold):
     num_samples = config_params['num_train_samples']
     if config_params['overlap']:
         pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}_f{}.h5'
+        data_path = 'data/epochs_{}c'.format(str(num_classes))
     else:
         pairdata_file = 'pairdata_novl_BL5_ew{}_{}_{}_{}_f{}.h5'
+        data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
     pairdata_file = pairdata_file.format(eeg_epoch_width_in_s,
                                          num_classes,
                                          batch_size,

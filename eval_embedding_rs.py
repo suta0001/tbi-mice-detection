@@ -59,8 +59,10 @@ def eval_performance(models_path, config_file):
     test_percent = config_params['test_percent']
     if config_params['overlap']:
         pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}_{}.h5'
+        data_path = 'data/epochs_{}c'.format(str(num_classes))
     else:
         pairdata_file = 'pairdata_novl_BL5_ew{}_{}_{}_{}_{}.h5'
+        data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
     pairdata_file = pairdata_file.format(eeg_epoch_width_in_s,
                                          num_classes,
                                          batch_size,
@@ -77,7 +79,6 @@ def eval_performance(models_path, config_file):
     del df0, df1
     df = df.drop_duplicates()
     # generate list of training EEG epochs and classes (labels)
-    data_path = 'data/epochs_{}c'.format(str(num_classes))
     eeg_epochs = []
     labels = []
     file_template = '{}_BL5_' + 'ew{}.h5'.format(eeg_epoch_width_in_s)
