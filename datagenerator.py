@@ -148,7 +148,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             for stage in self.stages:
                 label = du.get_class_label(self.num_classes, species, stage)
                 num_epoch_samples = self.get_num_samples(species, stage)
-                indexes = [i for i in range(self.num_epoch_samples)]
+                indexes = [i for i in range(num_epoch_samples)]
                 np.random.shuffle(indexes)
                 num_test_samples = int(np.round(self.test_percent *
                                                 num_epoch_samples / 100))
