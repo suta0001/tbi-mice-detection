@@ -39,14 +39,14 @@ class DataGenerator(tf.keras.utils.Sequence):
         assert purpose in ('train', 'test'),\
             'purpose must be either train or test'
         self.purpose = purpose
-        assert batch_size <= self.num_samples,\
-            'Batch size must be <= number of (train or test) samples'
-        self.batch_size = batch_size
         self.decimate = decimate
         assert test_percent >= 0 and test_percent <= 100,\
             'test_percent must be between 0 and 100'
         self.test_percent = test_percent
         self.num_samples = self._get_total_num_samples()
+        assert batch_size <= self.num_samples,\
+            'Batch size must be <= number of (train or test) samples'
+        self.batch_size = batch_size
 
         # check that num_classes is set to 4
         assert num_classes == 4,\
