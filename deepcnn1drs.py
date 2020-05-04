@@ -53,7 +53,7 @@ with tf.device('/cpu:0'):
 pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
 # pmodel = model
 pmodel.compile(optimizer=optimizer,
-               loss='categorical_crossentropy',
+               loss='sparse_categorical_crossentropy',
                metrics=['accuracy'])
 
 # set up training parameters
@@ -138,6 +138,7 @@ for fold in range(1):
     print('Fold = ' + str(fold) + ' Accuracy = ' +
           '{:.3f}'.format(test_acc))
     print(confusion_matrix(test_labels, predict_labels))
+
     # print report
     report = classification_report(test_labels, predict_labels,
                                    target_names=target_names,
