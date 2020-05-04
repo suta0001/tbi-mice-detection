@@ -76,7 +76,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             self.num_samples = num_test_samples
             self.df = pd.read_hdf(self.out_file, 'data_index/test', mode='r')
         else:
-            self.num_samples = num_samples - num_test_samples
+            self.num_samples = self.num_samples - num_test_samples
             self.df = pd.read_hdf(self.out_file, 'data_index/train', mode='r')
 
         # shuffle data if shuffle=True
