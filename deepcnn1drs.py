@@ -129,6 +129,13 @@ for fold in range(1):
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=100)
+    filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
+        config_params['config_name'],
+        config_params['num_classes'],
+        config_params['epoch_width'],
+        config_params['epochs'],
+        str(fold))
+    pmodel = tf.keras.models.load_model(filepath)
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
