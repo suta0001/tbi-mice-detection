@@ -70,14 +70,9 @@ class DataGenerator(tf.keras.utils.Sequence):
             self._generate_labeled_samples()
 
         # set the generator to be either train or test data generator
-        num_test_samples = int(np.floor(self.test_percent *
-                                        self.num_samples / 100))
-        if self.purpose == 'test':
-            self.num_samples = num_test_samples
-            self.df = pd.read_hdf(self.out_file, 'data_index/test', mode='r')
-        else:
-            self.num_samples = self.num_samples - num_test_samples
-            self.df = pd.read_hdf(self.out_file, 'data_index/train', mode='r')
+        self.df = pd.read_hdf(self.out_file,
+                              'data_index/{}'.format(self.purpose), mode='r')
+        self.num_samples = len(self.df.index)
 
         # shuffle data if shuffle=True
         self.shuffle = shuffle
