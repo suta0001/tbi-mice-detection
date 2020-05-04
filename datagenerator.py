@@ -101,7 +101,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             df = self.df
             epoch = self.data_from_hdf5(df.at[pidx, 'species'],
                                         df.at[pidx, 'stage'],
-                                        df.at[pidx, 'index'])
+                                        df.at[pidx, 'sindex'])
             if self.decimate > 1:
                 epoch = decimate(epoch, self.decimate)
             data.append(epoch)
@@ -160,26 +160,28 @@ class DataGenerator(tf.keras.utils.Sequence):
                                            curr_test_index +
                                            num_test_samples))
                 sindex = indexes[:num_train_samples]
-                store.append('data_index/train',
-                             pd.DataFrame({'species': species,
-                                           'stage': stage,
-                                           'index': sindex,
-                                           'label': label},
-                                          index=df_train_index),
-                             data_columns=True,
-                             min_itemsize={'species': 7,
-                                           'stage': 5})
+                if len(sindex) != 0:
+                    store.append('data_index/train',
+                                 pd.DataFrame({'species': species,
+                                               'stage': stage,
+                                               'sindex': sindex,
+                                               'label': label},
+                                              index=df_train_index),
+                                 data_columns=True,
+                                 min_itemsize={'species': 7,
+                                               'stage': 5})
                 curr_train_index += num_train_samples
                 sindex = indexes[num_train_samples:]
-                store.append('data_index/test',
-                             pd.DataFrame({'species': species,
-                                           'stage': stage,
-                                           'index': sindex,
-                                           'label': label},
-                                          index=df_test_index),
-                             data_columns=True,
-                             min_itemsize={'species': 7,
-                                           'stage': 5})
+                if len(sindex) != 0:
+                    store.append('data_index/test',
+                                 pd.DataFrame({'species': species,
+                                               'stage': stage,
+                                               'sindex': sindex,
+                                               'label': label},
+                                              index=df_test_index),
+                                 data_columns=True,
+                                 min_itemsize={'species': 7,
+                                               'stage': 5})
                 curr_test_index += num_test_samples
         store.close()
 
