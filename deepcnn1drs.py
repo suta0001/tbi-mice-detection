@@ -128,7 +128,7 @@ for fold in range(1):
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
-                                test_percent=100)
+                                test_percent=config_params['overlap'])
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
         config_params['num_classes'],
