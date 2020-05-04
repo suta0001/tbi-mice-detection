@@ -70,7 +70,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             self._generate_labeled_samples()
 
         # set the generator to be either train or test data generator
-        num_test_samples = int(np.round(self.test_percent *
+        num_test_samples = int(np.floor(self.test_percent *
                                         self.num_samples / 100))
         if self.purpose == 'test':
             self.num_samples = num_test_samples
@@ -150,7 +150,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                 num_epoch_samples = self.get_num_samples(species, stage)
                 indexes = [i for i in range(num_epoch_samples)]
                 np.random.shuffle(indexes)
-                num_test_samples = int(np.round(self.test_percent *
+                num_test_samples = int(np.floor(self.test_percent *
                                                 num_epoch_samples / 100))
                 num_train_samples = num_epoch_samples - num_test_samples
                 df_train_index = list(range(curr_train_index,
