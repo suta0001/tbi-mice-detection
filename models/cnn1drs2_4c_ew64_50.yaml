@@ -6,7 +6,7 @@ overlap: no
 
 # training parameters
 epochs: 50
-test_percent: 20
+test_percent: 80
 
 # model parameters
 dropout: 0.10
