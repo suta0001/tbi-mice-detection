@@ -37,8 +37,8 @@ config_files = ['basesiam_4c_ew32_25.yaml',
                 'siam15_4c_ew32_25.yaml',
                 'siam16_4c_ew32_25.yaml']
 # config_files = ['siam9_4c_ew32_25.yaml']
-train_outfile = 'train_4c_ew32_metrics.csv'
-test_outfile = 'test_4c_ew32_metrics.csv'
+train_outfile = 'train_4c_metrics.csv'
+test_outfile = 'test_4c_metrics.csv'
 
 
 def predict_labels_based_on_distance(epochs, avg_embeddings):
