@@ -15,22 +15,27 @@ import yaml
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
 models_path = 'models'
-# config_files = ['basesiamrs_4c_ew32_25.yaml',
-#                 'siamrs1_4c_ew32_25.yaml',
-#                 'siamrs2_4c_ew32_25.yaml',
-#                 'siamrs3_4c_ew32_25.yaml',
-#                 'siamrs4_4c_ew32_25.yaml',
-#                 'siamrs5_4c_ew32_25.yaml',
-#                 'siamrs6_4c_ew32_25.yaml',
-#                 'siamrs7_4c_ew32_25.yaml',
-#                 'siamrs8_4c_ew32_25.yaml',
-#                 'siamrs9_4c_ew32_25.yaml',
-#                 'siamrs10_4c_ew32_25.yaml',
-#                 'siamrs11_4c_ew32_25.yaml',
-#                 'siamrs12_4c_ew4_25.yaml',
-#                 'siamrs12_4c_ew32_25.yaml',
-#                 'siamrs13_4c_ew32_25.yaml']
-config_files = ['siamrs14_4c_ew32_25.yaml']
+config_files = ['basesiamrs_4c_ew32_25.yaml',
+                'siamrs1_4c_ew32_25.yaml',
+                'siamrs2_4c_ew32_25.yaml',
+                'siamrs3_4c_ew32_25.yaml',
+                'siamrs4_4c_ew32_25.yaml',
+                'siamrs5_4c_ew32_25.yaml',
+                'siamrs6_4c_ew32_25.yaml',
+                'siamrs7_4c_ew32_25.yaml',
+                'siamrs8_4c_ew32_25.yaml',
+                'siamrs9_4c_ew32_25.yaml',
+                'siamrs10_4c_ew32_25.yaml',
+                'siamrs11_4c_ew32_25.yaml',
+                'siamrs12_4c_ew4_25.yaml',
+                'siamrs12_4c_ew32_25.yaml',
+                'siamrs13_4c_ew32_25.yaml',
+                'siamrs14_4c_ew16_25.yaml',
+                'siamrs14_4c_ew32_25.yaml',
+                'siamrs14_4c_ew64_25.yaml',
+                'siamrs15_4c_ew32_25.yaml',
+                'siamrs16_4c_ew32_25.yaml']
+# config_files = ['siamrs14_4c_ew32_25.yaml']
 train_outfile = 'trainrs_4c_metrics.csv'
 all_outfile = 'allrs_4c_metrics.csv'
 
