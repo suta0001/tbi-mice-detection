@@ -2,6 +2,7 @@
 config_name: siam13
 num_classes: 4
 epoch_width: 32
+overlap: yes
 
 # training parameters
 epochs: 25 
