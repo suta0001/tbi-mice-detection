@@ -18,21 +18,25 @@ target_names = ['SW', 'SS', 'TW', 'TS']
 decimate_factor = 4
 batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
 models_path = 'models'
-# config_files = ['basesiam_4c_ew32_25.yaml',
-#                 'siam1_4c_ew32_25.yaml',
-#                 'siam2_4c_ew32_25.yaml',
-#                 'siam3_4c_ew32_25.yaml',
-#                 'siam4_4c_ew32_25.yaml',
-#                 'siam5_4c_ew32_25.yaml',
-#                 'siam6_4c_ew32_25.yaml',
-#                 'siam7_4c_ew32_25.yaml',
-#                 'siam8_4c_ew32_25.yaml',
-#                 'siam9_4c_ew32_25.yaml',
-#                 'siam10_4c_ew32_25.yaml',
-#                 'siam11_4c_ew32_25.yaml',
-#                 'siam12_4c_ew32_25.yaml',
-#                 'siam13_4c_ew32_25.yaml']
-config_files = ['siam9_4c_ew32_25.yaml']
+config_files = ['basesiam_4c_ew32_25.yaml',
+                'siam1_4c_ew32_25.yaml',
+                'siam2_4c_ew32_25.yaml',
+                'siam3_4c_ew32_25.yaml',
+                'siam4_4c_ew32_25.yaml',
+                'siam5_4c_ew32_25.yaml',
+                'siam6_4c_ew32_25.yaml',
+                'siam7_4c_ew32_25.yaml',
+                'siam8_4c_ew32_25.yaml',
+                'siam9_4c_ew32_25.yaml',
+                'siam10_4c_ew32_25.yaml',
+                'siam11_4c_ew32_25.yaml',
+                'siam12_4c_ew32_25.yaml',
+                'siam13_4c_ew32_25.yaml',
+                'siam14_4c_ew16_25.yaml',
+                'siam14_4c_ew32_25.yaml',
+                'siam15_4c_ew32_25.yaml',
+                'siam16_4c_ew32_25.yaml']
+# config_files = ['siam9_4c_ew32_25.yaml']
 train_outfile = 'train_4c_ew32_metrics.csv'
 test_outfile = 'test_4c_ew32_metrics.csv'
 
