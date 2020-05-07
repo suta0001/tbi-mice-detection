@@ -1,0 +1,15 @@
+# general setup
+config_name: cnn1drs5
+num_classes: 4
+epoch_width: 64
+overlap: yes
+
+# training parameters
+epochs: 50
+test_percent: 80
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 4 
+filters: 128
+
