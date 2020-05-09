@@ -183,6 +183,12 @@ def generate_embeddings(eeg_epochs, model_path, fold=0):
                                      fold)
         model.load_weights(net_model)
         model = model.layers[2]
+
+        if(False): # set to true to save a combined HDF5 model
+            print("Saving model...")
+            model.save(net_model + "_combined.h5")
+            print("Combined model saved")
+            #model.summary()
     shape = (1, num_tsteps, 1)
     features = []
     for eeg_epoch in eeg_epochs:

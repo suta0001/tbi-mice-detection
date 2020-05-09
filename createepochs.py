@@ -10,8 +10,8 @@ parser = au.set_common_arg_parser('Create epochs from EDF files.')
 args = parser.parse_args()
 
 # set up file location paths
-edf_path = os.path.join('data', 'edf')
-stage_path = os.path.join('data', 'sleep_staging')
+edf_path = os.path.join(r'C:\Users\Nav\Desktop\CapstoneWork', 'EDF')
+stage_path = os.path.join(r'C:\Users\Nav\Desktop\CapstoneWork\ECG-EEG-Data-Analysis-master\ECG-EEG-Data-Analysis-master\EEG_Data', 'sleep_staging')
 if args.no_overlap:
     epochs_path = os.path.join('data', 'epochs_novl_{}c'.format(
         str(args.num_classes)))
@@ -73,9 +73,10 @@ def process_edf(edf_path, edf_file, eeg_epoch_width_in_s,
 
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
-with concurrent.futures.ProcessPoolExecutor(
-        max_workers=args.num_cpus) as executor:
-    for edf_file in edf_files:
-        executor.submit(process_edf, edf_path, edf_file,
-                        args.eeg_epoch_width_in_s, args.num_classes,
-                        not args.no_overlap, epochs_path)
+if __name__ == '__main__':
+    with concurrent.futures.ProcessPoolExecutor(
+            max_workers=args.num_cpus) as executor:
+        for edf_file in edf_files:
+            executor.submit(process_edf, edf_path, edf_file,
+                            args.eeg_epoch_width_in_s, args.num_classes,
+                            not args.no_overlap, epochs_path)

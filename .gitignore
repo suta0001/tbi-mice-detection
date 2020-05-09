@@ -9,3 +9,5 @@ logs
 run_scripts
 tb_logs
 
+.vs/tbi-mice-detection/v15/.suo
+.vs/slnx.sqlite
