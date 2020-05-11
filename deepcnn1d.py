@@ -78,7 +78,7 @@ if config_params['overlap']:
 else:
     data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
-for fold in range(1):
+for fold in range(len(dataset_folds)):
     # set up checkpoints
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
