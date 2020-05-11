@@ -12,7 +12,6 @@ import yaml
 """Evaluate performance of trained Siamese embedding generator"""
 # general setup parameters
 # currently only supports the values below
-eeg_epoch_width_in_s = 32
 num_classes = 4
 target_names = ['SW', 'SS', 'TW', 'TS']
 decimate_factor = 4
@@ -57,6 +56,7 @@ def eval_performance(models_path, config_file, fold):
     model_file = os.path.join(models_path, config_file)
     with open(model_file) as cfile:
         config_params = yaml.safe_load(cfile)
+    eeg_epoch_width_in_s = config_params['epoch_width']
     num_samples = config_params['num_train_samples']
     if config_params['overlap']:
         pairdata_file = 'pairdata_BL5_ew{}_{}_{}_{}_f{}.h5'
