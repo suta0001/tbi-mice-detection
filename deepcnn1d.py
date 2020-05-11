@@ -60,25 +60,28 @@ pmodel.compile(optimizer=optimizer,
 batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
 epochs = config_params['epochs']
 
-# set up tensorboard
-tensorboard = tf.keras.callbacks.TensorBoard()
-log_dir = 'tb_logs/{}_{}c_ew{}_{}'.format(config_params['config_name'],
-                                          config_params['num_classes'],
-                                          config_params['epoch_width'],
-                                          config_params['epochs'])
-tensorboard.log_dir = log_dir
-# tensorboard.histogram_freq = epochs / 1
-# tensorboard.write_grads = True
-# tensorboard.batch_size = batch_size
-# tensorboard.update_freq = 'epoch'
-
+# set up data source
 dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 if config_params['overlap']:
     data_path = 'data/epochs_{}c'.format(str(num_classes))
 else:
     data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
+
 for fold in range(len(dataset_folds)):
+    # set up tensorboard
+    tensorboard = tf.keras.callbacks.TensorBoard()
+    log_dir = 'tb_logs/{}_{}c_ew{}_{}_{}'.format(config_params['config_name'],
+                                                 config_params['num_classes'],
+                                                 config_params['epoch_width'],
+                                                 config_params['epochs'],
+                                                 str(fold))
+    tensorboard.log_dir = log_dir
+    # tensorboard.histogram_freq = epochs / 1
+    # tensorboard.write_grads = True
+    # tensorboard.batch_size = batch_size
+    # tensorboard.update_freq = 'epoch'
+
     # set up checkpoints
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
