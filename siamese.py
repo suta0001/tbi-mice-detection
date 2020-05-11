@@ -37,6 +37,12 @@ def contrastive_loss(y_true, y_pred):
                   K.square(K.maximum(margin - y_pred, 0)))
 
 
+# setup the model parameters
+filters = config_params['filters']
+embedding_dimension = config_params['embedding_dimension']
+dropout = config_params['dropout']
+num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
+
 # set up training parameters
 num_train_samples = config_params['num_train_samples']
 num_test_samples = config_params['num_test_samples']
