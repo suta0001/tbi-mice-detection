@@ -35,26 +35,6 @@ filters = config_params['filters']
 embedding_dimension = config_params['embedding_dimension']
 dropout = config_params['dropout']
 num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
-with tf.device('/cpu:0'):
-    model = get_baseline_convolutional_encoder(filters,
-                                               embedding_dimension,
-                                               (num_tsteps, 1),
-                                               dropout)
-    model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
-
-    # define optimizers
-    optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
-    # load previously saved model if requested
-    if len(sys.argv) == 6:
-        print('loading previous model = ', sys.argv[5])
-        model.load_weights(sys.argv[5])
-
-# compile the model
-pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
-# pmodel = model
-pmodel.compile(optimizer=optimizer,
-               loss='sparse_categorical_crossentropy',
-               metrics=['accuracy'])
 
 # set up training parameters
 batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
@@ -69,6 +49,27 @@ else:
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 
 for fold in range(len(dataset_folds)):
+    with tf.device('/cpu:0'):
+        model = get_baseline_convolutional_encoder(filters,
+                                                   embedding_dimension,
+                                                   (num_tsteps, 1),
+                                                   dropout)
+        model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
+
+        # define optimizers
+        optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
+        # load previously saved model if requested
+        if len(sys.argv) == 6:
+            print('loading previous model = ', sys.argv[5])
+            model.load_weights(sys.argv[5])
+
+    # compile the model
+    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+    # pmodel = model
+    pmodel.compile(optimizer=optimizer,
+                   loss='sparse_categorical_crossentropy',
+                   metrics=['accuracy'])
+    
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
     log_dir = 'tb_logs/{}_{}c_ew{}_{}_{}'.format(config_params['config_name'],
