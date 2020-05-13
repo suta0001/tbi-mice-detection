@@ -89,4 +89,4 @@ for config_file in config_files:
         folds.append(fold)
         report = eval_performance(models_path, config_file, fold)
         reports.append(report)
-write_reports_to_csv(config_files, folds, reports, outfile)
+write_reports_to_csv(models, folds, reports, outfile)
