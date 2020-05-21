@@ -10,8 +10,8 @@ parser = au.set_common_arg_parser('Create epochs from EDF files.')
 args = parser.parse_args()
 
 # set up file location paths
-edf_path = os.path.join(r'C:\Users\Nav\Desktop\CapstoneWork', 'EDF')
-stage_path = os.path.join(r'C:\Users\Nav\Desktop\CapstoneWork\ECG-EEG-Data-Analysis-master\ECG-EEG-Data-Analysis-master\EEG_Data', 'sleep_staging')
+edf_path = os.path.join('data', 'edf')
+stage_path = os.path.join('data', 'sleep_staging')
 if args.no_overlap:
     epochs_path = os.path.join('data', 'epochs_novl_{}c'.format(
         str(args.num_classes)))
