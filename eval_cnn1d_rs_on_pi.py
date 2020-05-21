@@ -5,6 +5,7 @@ import numpy as np
 import os
 import tensorflow as tf
 from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 import yaml
 
 
@@ -61,7 +62,7 @@ def eval_performance(models_path, model_file):
     # define the test set
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
     dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-    species_set = ['Sham102', 'TBI102']
+    species_set = ['Sham102']#, 'TBI102']
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     test_gen = dg.DataGenerator(data_path, file_template, species_set,
                                 'test', batch_size, num_classes,
@@ -80,6 +81,12 @@ def eval_performance(models_path, model_file):
     report = classification_report(labels, predict_labels,
                                    target_names=target_names,
                                    output_dict=True)
+    acc = accuracy_score(labels, predict_labels)
+    print("acc = {}".format(acc))
+
+    print("classification_report:")
+    print(report)
+
     return report
 
 
@@ -106,4 +113,4 @@ reports = []
 for model_file in model_files:
     report = eval_performance(models_path, model_file)
     reports.append(report)
-write_reports_to_csv(model_files, reports, outfile)
+#write_reports_to_csv(model_files, reports, outfile)
