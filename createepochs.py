@@ -73,9 +73,10 @@ def process_edf(edf_path, edf_file, eeg_epoch_width_in_s,
 
 # create epochs from all EDF files
 edf_files = [file for file in os.listdir(edf_path)]
-with concurrent.futures.ProcessPoolExecutor(
-        max_workers=args.num_cpus) as executor:
-    for edf_file in edf_files:
-        executor.submit(process_edf, edf_path, edf_file,
-                        args.eeg_epoch_width_in_s, args.num_classes,
-                        not args.no_overlap, epochs_path)
+if __name__ == '__main__':
+    with concurrent.futures.ProcessPoolExecutor(
+            max_workers=args.num_cpus) as executor:
+        for edf_file in edf_files:
+            executor.submit(process_edf, edf_path, edf_file,
+                            args.eeg_epoch_width_in_s, args.num_classes,
+                            not args.no_overlap, epochs_path)
