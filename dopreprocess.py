@@ -40,7 +40,8 @@ def process_file(path, file):
 # preprocess epochs from all files
 files = [file for file in os.listdir(epochs_path) if
          '_ew{}.h5'.format(args.eeg_epoch_width_in_s) in file]
-with concurrent.futures.ProcessPoolExecutor(
-        max_workers=args.num_cpus) as executor:
-    for file in files:
-        executor.submit(process_file, epochs_path, file)
+if __name__ == '__main__':
+    with concurrent.futures.ProcessPoolExecutor(
+            max_workers=args.num_cpus) as executor:
+        for file in files:
+            executor.submit(process_file, epochs_path, file)

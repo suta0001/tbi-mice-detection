@@ -1,3 +1,4 @@
+import datagenerator as dg
 import datautil as du
 from featureextraction import generate_embeddings
 import h5py
@@ -35,9 +36,9 @@ config_files = ['basesiamrs_4c_ew32_25.yaml',
                 'siamrs14_4c_ew64_25.yaml',
                 'siamrs15_4c_ew32_25.yaml',
                 'siamrs16_4c_ew32_25.yaml']
-# config_files = ['siamrs14_4c_ew32_25.yaml']
+# config_files = ['siamrs14_4c_ew64_25.yaml']
 train_outfile = 'trainrs_4c_metrics.csv'
-all_outfile = 'allrs_4c_metrics.csv'
+test_outfile = 'testrs_4c_metrics.csv'
 
 
 def predict_labels_based_on_distance(epochs, avg_embeddings):
@@ -114,16 +115,30 @@ def eval_performance(models_path, config_file):
                                          target_names=target_names,
                                          output_dict=True)
 
-    # read all EEG epochs and labels for both training and testing sets
+    # generate list of testing EEG epochs and classes (labels)
+    eeg_epochs = []
+    labels = []
     dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-    eeg_epochs, labels = du.build_dataset(data_path,
-                                          num_classes,
-                                          eeg_epoch_width_in_s,
-                                          'eeg',
-                                          None,
-                                          dataset_folds[0][0:11])
+    alldata = dg.DataGenerator(data_path, file_template, dataset_folds[0],
+                               shuffle=False, decimate=decimate_factor,
+                               test_percent=0,
+                               overlap=config_params['overlap'])
+    alldata.df.columns = ['species', 'stage', 'index', 'label']
+    df = pd.merge(alldata.df, df, on=['species', 'stage', 'index'],
+                  how='outer', indicator=True)
+    df = df.query("_merge != 'both'").drop('_merge', axis=1)
+    df = df.reset_index(drop=True)
+    for index, row in df.iterrows():
+        species = row['species']
+        stage = row['stage']
+        idx = row['index']
+        data_file = os.path.join(data_path,
+                                 file_template.format(species))
+        with h5py.File(data_file, 'r') as dfile:
+            eeg_epochs.append(dfile['eeg'][stage][idx])
+        labels.append(row['label'])
 
-    # generate embeddings for all EEG epochs using trained models
+    # generate embeddings for test EEG epochs using trained models
     eeg_epochs = generate_embeddings(decimate(eeg_epochs, decimate_factor),
                                      model_file)
 
@@ -132,11 +147,11 @@ def eval_performance(models_path, config_file):
                                                       avg_embeddings)
 
     # evaluate performance metrics
-    all_report = classification_report(labels, predict_labels,
-                                       target_names=target_names,
-                                       output_dict=True)
+    test_report = classification_report(labels, predict_labels,
+                                        target_names=target_names,
+                                        output_dict=True)
 
-    return train_report, all_report
+    return train_report, test_report
 
 
 def write_reports_to_csv(models, reports, outfile):
@@ -159,10 +174,10 @@ def write_reports_to_csv(models, reports, outfile):
 
 
 train_reports = []
-all_reports = []
+test_reports = []
 for config_file in config_files:
-    train_report, all_report = eval_performance(models_path, config_file)
+    train_report, test_report = eval_performance(models_path, config_file)
     train_reports.append(train_report)
-    all_reports.append(all_report)
+    test_reports.append(test_report)
 write_reports_to_csv(config_files, train_reports, train_outfile)
-write_reports_to_csv(config_files, all_reports, all_outfile)
+write_reports_to_csv(config_files, test_reports, test_outfile)
