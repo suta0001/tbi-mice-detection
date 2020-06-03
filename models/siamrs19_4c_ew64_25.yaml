@@ -12,6 +12,6 @@ margin: 1.25
 
 # model parameters
 dropout: 0.10
-embedding_dimension: 4
+embedding_dimension: 2
 filters: 128
 
