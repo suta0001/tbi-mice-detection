@@ -9,6 +9,6 @@ epochs: 50
 
 # model parameters
 dropout: 0.10
-embedding_dimension: 4 
+embedding_dimension: 8 
 filters: 32
 
