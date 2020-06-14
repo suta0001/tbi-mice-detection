@@ -43,8 +43,8 @@ def eval_performance(models_path, config_file, fold):
 
     # define the test set
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
-    dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-    species_set = dataset_folds[fold][8:]
+    ds_folds = [line.rstrip().split(',') for line in open('cv_folds2.txt')]
+    species_set = ds_folds[fold][8:]
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     test_gen = dg.DataGenerator(data_path, file_template, species_set,
                                 'test', batch_size, num_classes,
