@@ -1,0 +1,13 @@
+# general setup
+config_name: cnn1dsa32
+num_classes: 4
+epoch_width: 64
+
+# training parameters
+epochs: 50
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 4 
+filters: 128
+
