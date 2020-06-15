@@ -90,7 +90,7 @@ def calc_spectral_features(eeg_epochs, fs=256):
         power = [sa.calc_bandpower(psd, f, eeg_bands[band][0],
                  eeg_bands[band][1]) for band in bands]
         rel_power = [power[i] / total_power for i in range(len(power))]
-        feature.extend(power)
+        # feature.extend(power)
         feature.extend(rel_power)
         feature.append(rel_power[0] / rel_power[1])
         feature.append(rel_power[0] / rel_power[2])
@@ -110,14 +110,14 @@ def calc_spectral_features(eeg_epochs, fs=256):
         feature.append((rel_power[0] + rel_power[1]) /
                        (rel_power[2] + rel_power[3] + rel_power[4] +
                        rel_power[5]))
-        feature.append(sa.calc_edge_frequency(psd, f, 0.95))
-        feature.append(sa.calc_edge_frequency(psd, f, 0.50))
-        feature.append(f[np.argmax(psd)])
+        # feature.append(sa.calc_edge_frequency(psd, f, 0.95))
+        # feature.append(sa.calc_edge_frequency(psd, f, 0.50))
+        # feature.append(f[np.argmax(psd)])
         feature.append(sa.calc_spectral_entropy(psd))
-        feature.append(statistics.mean(psd))
-        feature.append(statistics.variance(psd))
-        feature.append(skew(psd))
-        feature.append(kurtosis(psd))
+        # feature.append(statistics.mean(psd))
+        # feature.append(statistics.variance(psd))
+        # feature.append(skew(psd))
+        # feature.append(kurtosis(psd))
         features.append(feature)
     return features
 
