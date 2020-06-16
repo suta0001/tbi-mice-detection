@@ -30,6 +30,19 @@ def calc_distance_features(eeg_epochs, source, model_path):
     return features
 
 
+def calc_multiple_features(eeg_epochs, features):
+    cfeatures = []
+    for feature in features:
+        if feature == 'pe':
+            op = calc_permutation_entropy
+            kwargs = {'orders': [3, 5, 7], 'delays': [1, 5, 10]}
+        elif feature == 'spectral':
+            op = calc_spectral_features
+            kwargs = {'fs': 256}
+        cfeatures.extend(op(eeg_epochs, **kwargs))
+    return cfeatures
+
+
 def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
     features = []
     for eeg_epoch in eeg_epochs:
@@ -44,7 +57,6 @@ def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
 
 def create_visibility_graphs(eeg_epoch, vis_graph_type='normal'):
     vis_graph = None
-
     if vis_graph_type == 'normal':
         vis_graph = vg.visibility_graph(eeg_epoch)
     elif vis_graph_type == 'horizontal':
@@ -53,7 +65,6 @@ def create_visibility_graphs(eeg_epoch, vis_graph_type='normal'):
         normal_vg = vg.visibility_graph(eeg_epoch)
         horizontal_vg = vg.horizontal_visibility_graph(eeg_epoch)
         vis_graph = nx.difference(normal_vg, horizontal_vg)
-
     return vis_graph
 
 
@@ -184,11 +195,11 @@ def generate_embeddings(eeg_epochs, model_path, fold=0):
         model.load_weights(net_model)
         model = model.layers[2]
 
-        if(False): # set to true to save a combined HDF5 model
+        if(False):  # set to true to save a combined HDF5 model
             print("Saving model...")
             model.save(net_model + "_combined.h5")
             print("Combined model saved")
-            #model.summary()
+            # model.summary()
     shape = (1, num_tsteps, 1)
     features = []
     for eeg_epoch in eeg_epochs:
@@ -226,4 +237,7 @@ def process(eeg_epochs, method):
         op = calc_distance_features
         kwargs = {'source': 'siamesers',
                   'model_path': 'models/siamrs1_4c_ew32_50.yaml'}
+    elif method == 'pe_spectral':
+        op = calc_multiple_features
+        kwargs = {'features': ['pe', 'spectral']}
     return op(eeg_epochs, **kwargs)
