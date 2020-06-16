@@ -39,8 +39,11 @@ def calc_multiple_features(eeg_epochs, features):
         elif feature == 'spectral':
             op = calc_spectral_features
             kwargs = {'fs': 256}
-        cfeatures.extend(op(eeg_epochs, **kwargs))
-    return cfeatures
+        if len(cfeatures) == 0:
+            cfeatures.extend(op(eeg_epochs, **kwargs))
+        else:
+            cfeatures = np.hstack((cfeatures, op(eeg_epochs, **kwargs)))
+    return cfeatures.tolist()
 
 
 def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
