@@ -16,7 +16,8 @@ parser.add_argument('pp_step', default=None,
                     help='applied preprocessing step')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
-                             'siamesers', 'siamdist', 'siamrsdist'],
+                             'siamesers', 'siamdist', 'siamrsdist',
+                             'pe_spectral'],
                     help='applied feature generator')
 parser.add_argument('model', default=None,
                     choices=['ffnn3hl', 'knn', 'rf', 'xgb'],
@@ -38,20 +39,20 @@ accuracies = []
 reports = []
 template = None
 common_labels = None
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
+dataset_folds = [line.rstrip().split(',') for line in open('cv_folds2.txt')]
 for fold, dataset_fold in enumerate(dataset_folds):
     train_epochs, train_labels = du.build_dataset(epochs_path,
                                                   args.num_classes,
                                                   args.eeg_epoch_width_in_s,
                                                   args.pp_step,
                                                   args.featgen,
-                                                  dataset_fold[0:7])
+                                                  dataset_fold[0:8])
     test_epochs, test_labels = du.build_dataset(epochs_path,
                                                 args.num_classes,
                                                 args.eeg_epoch_width_in_s,
                                                 args.pp_step,
                                                 args.featgen,
-                                                dataset_fold[7:11])
+                                                dataset_fold[8:])
 
     # define classifier
     clf = models.get_ml_model(args.model)
@@ -101,3 +102,25 @@ for name in target_names:
     recalls = [reports[i][name]['recall'] for i in range(len(reports))]
     print('Mean  recll ' + name + ' = ' + str(statistics.mean(recalls)))
     print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
+
+# write to file
+outfile = '{}_{}c_ew{}_{}_{}_metrics.csv'.format(args.model,
+                                                 args.num_classes,
+                                                 args.eeg_epoch_width_in_s,
+                                                 args.pp_step, args.featgen)
+metrics = ['precision', 'recall', 'f1-score', 'support']
+outputs = []
+# form array of header labels and add to outputs
+header_labels = ['fold', 'accuracy']
+for label in target_names:
+    for metric in metrics:
+        header_labels.append('{}_{}'.format(label, metric))
+outputs.append(header_labels)
+# form array of metric values and add to outputs
+for i in range(len(dataset_folds)):
+    metric_values = [i, reports[i]['accuracy']]
+    for label in target_names:
+        for metric in metrics:
+            metric_values.append(reports[i][label][metric])
+    outputs.append(metric_values)
+du.write_data(outfile, outputs)
