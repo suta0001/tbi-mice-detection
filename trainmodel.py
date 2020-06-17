@@ -104,10 +104,12 @@ for name in target_names:
     print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
 
 # write to file
-outfile = '{}_{}c_ew{}_{}_{}_metrics.csv'.format(args.model,
-                                                 args.num_classes,
-                                                 args.eeg_epoch_width_in_s,
-                                                 args.pp_step, args.featgen)
+if args.no_overlap:
+    outfile = '{}_novl_{}c_ew{}_{}_{}_metrics.csv'
+else:
+    outfile = '{}_{}c_ew{}_{}_{}_metrics.csv'
+outfile = outfile.format(args.model, args.num_classes,
+                         args.eeg_epoch_width_in_s, args.pp_step, args.featgen)
 metrics = ['precision', 'recall', 'f1-score', 'support']
 outputs = []
 # form array of header labels and add to outputs
