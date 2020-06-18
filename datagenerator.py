@@ -116,7 +116,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         datafile = os.path.join(self.file_path,
                                 self.file_template.format(species))
         with h5py.File(datafile, 'r') as datafile:
-            num_epoch_samples = datafile['eeg'][stage].shape[0]
+            num_epoch_samples = datafile['pp4'][stage].shape[0]
         return num_epoch_samples
 
     def on_epoch_end(self):
@@ -129,7 +129,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                                 self.file_template.format(species))
         data = []
         with h5py.File(datafile, 'r') as sfile:
-            data = sfile['eeg'][stage][idx]
+            data = sfile['pp4'][stage][idx]
         return data
 
     def _generate_labeled_samples(self):

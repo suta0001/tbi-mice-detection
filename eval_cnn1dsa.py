@@ -10,17 +10,9 @@ import yaml
 # general setup parameters
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
-decimate_factor = 4
+decimate_factor = 1
 models_path = 'models'
-config_files = ['cnn1dsa20_4c_ew64_50.yaml',
-                'cnn1dsa21_4c_ew64_50.yaml',
-                'cnn1dsa22_4c_ew64_50.yaml',
-                'cnn1dsa23_4c_ew64_50.yaml',
-                'cnn1dsa24_4c_ew64_50.yaml',
-                'cnn1dsa25_4c_ew64_50.yaml',
-                'cnn1dsa26_4c_ew64_50.yaml',
-                'cnn1dsa27_4c_ew64_50.yaml',
-                'cnn1dsa28_4c_ew64_50.yaml']
+config_files = ['cnn1dsa20_4c_ew64_50.yaml']
 outfile = 'cnn1dsa2_4c_metrics.csv'
 
 
