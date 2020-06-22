@@ -12,7 +12,16 @@ import yaml
 target_names = ['SW', 'SS', 'TW', 'TS']
 decimate_factor = 4
 models_path = 'models'
-config_files = ['cnn1d0_4c_ew64_50.yaml']
+config_files = ['cnn1d0_4c_ew64_50.yaml',
+                'cnn1d1_4c_ew64_50.yaml',
+                'cnn1d2_4c_ew64_50.yaml',
+                'cnn1d3_4c_ew64_50.yaml',
+                'cnn1d4_4c_ew64_50.yaml',
+                'cnn1d5_4c_ew64_50.yaml',
+                'cnn1d6_4c_ew64_50.yaml',
+                'cnn1d7_4c_ew64_50.yaml',
+                'cnn1d8_4c_ew64_50.yaml',
+                'cnn1d9_4c_ew64_50.yaml']
 outfile = 'cnn1d_4c_metrics.csv'
 
 
