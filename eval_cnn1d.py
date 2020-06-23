@@ -22,7 +22,7 @@ config_files = ['cnn1d0_4c_ew64_50.yaml',
                 'cnn1d7_4c_ew64_50.yaml',
                 'cnn1d8_4c_ew64_50.yaml',
                 'cnn1d9_4c_ew64_50.yaml']
-outfile = 'cnn1d_4c_metrics.csv'
+outfile = 'metrics/cnn1d_4c_metrics.csv'
 
 
 def eval_performance(models_path, config_file, fold):
