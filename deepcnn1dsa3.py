@@ -123,7 +123,6 @@ for fold in range(len(dataset_folds)):
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
                          validation_data=val_gen,
-                         validation_freq=5,
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
