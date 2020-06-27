@@ -16,29 +16,29 @@ import yaml
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
 models_path = 'models'
-config_files = ['basesiamrs_4c_ew32_25.yaml',
-                'siamrs1_4c_ew32_25.yaml',
-                'siamrs2_4c_ew32_25.yaml',
-                'siamrs3_4c_ew32_25.yaml',
-                'siamrs4_4c_ew32_25.yaml',
-                'siamrs5_4c_ew32_25.yaml',
-                'siamrs6_4c_ew32_25.yaml',
-                'siamrs7_4c_ew32_25.yaml',
-                'siamrs8_4c_ew32_25.yaml',
-                'siamrs9_4c_ew32_25.yaml',
-                'siamrs10_4c_ew32_25.yaml',
-                'siamrs11_4c_ew32_25.yaml',
-                'siamrs12_4c_ew4_25.yaml',
-                'siamrs12_4c_ew32_25.yaml',
-                'siamrs13_4c_ew32_25.yaml',
-                'siamrs14_4c_ew16_25.yaml',
-                'siamrs14_4c_ew32_25.yaml',
-                'siamrs14_4c_ew64_25.yaml',
-                'siamrs15_4c_ew32_25.yaml',
-                'siamrs16_4c_ew32_25.yaml']
-# config_files = ['siamrs14_4c_ew64_25.yaml']
-train_outfile = 'trainrs_4c_metrics.csv'
-test_outfile = 'testrs_4c_metrics.csv'
+# config_files = ['basesiamrs_4c_ew32_25.yaml',
+#                 'siamrs1_4c_ew32_25.yaml',
+#                 'siamrs2_4c_ew32_25.yaml',
+#                 'siamrs3_4c_ew32_25.yaml',
+#                 'siamrs4_4c_ew32_25.yaml',
+#                 'siamrs5_4c_ew32_25.yaml',
+#                 'siamrs6_4c_ew32_25.yaml',
+#                 'siamrs7_4c_ew32_25.yaml',
+#                 'siamrs8_4c_ew32_25.yaml',
+#                 'siamrs9_4c_ew32_25.yaml',
+#                 'siamrs10_4c_ew32_25.yaml',
+#                 'siamrs11_4c_ew32_25.yaml',
+#                 'siamrs12_4c_ew4_25.yaml',
+#                 'siamrs12_4c_ew32_25.yaml',
+#                 'siamrs13_4c_ew32_25.yaml',
+#                 'siamrs14_4c_ew16_25.yaml',
+#                 'siamrs14_4c_ew32_25.yaml',
+#                 'siamrs14_4c_ew64_25.yaml',
+#                 'siamrs15_4c_ew32_25.yaml',
+#                 'siamrs16_4c_ew32_25.yaml']
+config_files = ['siamrs9_4c_ew64_25.yaml']
+train_outfile = 'metrics/trainrs_4c_metrics.csv'
+test_outfile = 'metrics/testrs_4c_metrics.csv'
 
 
 def predict_labels_based_on_distance(epochs, avg_embeddings):
@@ -104,7 +104,7 @@ def eval_performance(models_path, config_file):
 
     # calculate average embeddings for all classes
     avg_embeddings = du.calc_average_features(eeg_epochs, labels, num_classes)
-    du.write_data('{}_avg_emb.csv'.format(config_file), avg_embeddings)
+    du.write_data('avg_emb/{}_avg_emb.csv'.format(config_file), avg_embeddings)
 
     # set predicted class based on minimum distance to average embeddings
     predict_labels = predict_labels_based_on_distance(eeg_epochs,
@@ -126,6 +126,7 @@ def eval_performance(models_path, config_file):
     alldata.df.columns = ['species', 'stage', 'index', 'label']
     df = pd.merge(alldata.df, df, on=['species', 'stage', 'index'],
                   how='outer', indicator=True)
+    del alldata
     df = df.query("_merge != 'both'").drop('_merge', axis=1)
     df = df.reset_index(drop=True)
     for index, row in df.iterrows():
@@ -135,12 +136,13 @@ def eval_performance(models_path, config_file):
         data_file = os.path.join(data_path,
                                  file_template.format(species))
         with h5py.File(data_file, 'r') as dfile:
-            eeg_epochs.append(dfile['eeg'][stage][idx])
+            dec_epoch = decimate(dfile['eeg'][stage][idx], decimate_factor)
+            eeg_epochs.append(dec_epoch)
         labels.append(row['label'])
+    del df
 
     # generate embeddings for test EEG epochs using trained models
-    eeg_epochs = generate_embeddings(decimate(eeg_epochs, decimate_factor),
-                                     model_file)
+    eeg_epochs = generate_embeddings(eeg_epochs, model_file)
 
     # set predicted class based on minimum distance to average embeddings
     predict_labels = predict_labels_based_on_distance(eeg_epochs,
