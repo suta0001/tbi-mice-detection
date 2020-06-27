@@ -22,6 +22,8 @@ config_files = ['cnn1dsa20_4c_ew64_50.yaml',
                 'cnn1dsa27_4c_ew64_50.yaml',
                 'cnn1dsa28_4c_ew64_50.yaml']
 outfile = 'metrics/cnn1dsa2_4c_2c_metrics.csv'
+woutfile = 'metrics/cnn1dsa2_4c_2cw_metrics.csv'
+soutfile = 'metrics/cnn1dsa2_4c_2cs_metrics.csv'
 
 
 def process_into_2c(labels):
@@ -32,6 +34,19 @@ def process_into_2c(labels):
         elif label == 2 or label == 3:
             labels_2c.append(1)
     return labels_2c
+
+
+def select_labels(true_labels, predict_labels, stage='wake'):
+    sel_true_labels = []
+    sel_predict_labels = []
+    for i in range(len(true_labels)):
+        if stage == 'wake' and true_labels[i] % 2 == 0:
+            sel_true_labels.append(true_labels[i])
+            sel_predict_labels.append(predict_labels[i])
+        elif stage == 'sleep' and true_labels[i] % 2 == 1:
+            sel_true_labels.append(true_labels[i])
+            sel_predict_labels.append(predict_labels[i])
+    return sel_true_labels, sel_predict_labels
 
 
 def eval_performance(models_path, config_file, fold):
@@ -68,14 +83,26 @@ def eval_performance(models_path, config_file, fold):
     predict_labels = pmodel.predict_generator(test_gen,
                                               max_queue_size=1)
     predict_labels = predict_labels.argmax(axis=1)
+    wlabels, predict_wlabels = select_labels(labels, predict_labels, 'wake')
+    slabels, predict_slabels = select_labels(labels, predict_labels, 'sleep')
     labels = process_into_2c(labels)
     predict_labels = process_into_2c(predict_labels)
+    wlabels = process_into_2c(wlabels)
+    predict_wlabels = process_into_2c(predict_wlabels)
+    slabels = process_into_2c(slabels)
+    predict_slabels = process_into_2c(predict_slabels)
 
     # evaluate performance metrics
     report = classification_report(labels, predict_labels,
                                    target_names=target_names,
                                    output_dict=True)
-    return report
+    wake_report = classification_report(wlabels, predict_wlabels,
+                                        target_names=target_names,
+                                        output_dict=True)
+    sleep_report = classification_report(slabels, predict_slabels,
+                                         target_names=target_names,
+                                         output_dict=True)
+    return report, wake_report, sleep_report
 
 
 def write_reports_to_csv(models, folds, reports, outfile):
@@ -98,6 +125,8 @@ def write_reports_to_csv(models, folds, reports, outfile):
 
 
 reports = []
+wreports = []
+sreports = []
 folds = []
 models = []
 for config_file in config_files:
@@ -107,6 +136,11 @@ for config_file in config_files:
         fold = int(file.split('_')[4])
         models.append(config_file)
         folds.append(fold)
-        report = eval_performance(models_path, config_file, fold)
+        report, wreport, sreport = eval_performance(models_path, config_file,
+                                                    fold)
         reports.append(report)
+        wreports.append(wreport)
+        sreports.append(sreport)
 write_reports_to_csv(models, folds, reports, outfile)
+write_reports_to_csv(models, folds, wreports, woutfile)
+write_reports_to_csv(models, folds, sreports, soutfile)
