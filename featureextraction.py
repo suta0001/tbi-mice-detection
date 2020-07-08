@@ -100,34 +100,34 @@ def calc_spectral_features(eeg_epochs, fs=256):
     for eeg_epoch in eeg_epochs:
         feature = []
         f, psd = sa.calc_psd(eeg_epoch, fs)
-        total_power = sa.calc_bandpower(psd, f, f[0], f[-1])
+        # total_power = sa.calc_bandpower(psd, f, f[0], f[-1])
         power = [sa.calc_bandpower(psd, f, eeg_bands[band][0],
                  eeg_bands[band][1]) for band in bands]
-        rel_power = [power[i] / total_power for i in range(len(power))]
+        # rel_power = [power[i] / total_power for i in range(len(power))]
         # feature.extend(power)
-        feature.extend(rel_power)
-        feature.append(rel_power[0] / rel_power[1])
-        feature.append(rel_power[0] / rel_power[2])
-        feature.append(rel_power[0] / rel_power[3])
-        feature.append(rel_power[0] / rel_power[4])
-        feature.append(rel_power[0] / rel_power[5])
-        feature.append(rel_power[1] / rel_power[2])
-        feature.append(rel_power[1] / rel_power[3])
-        feature.append(rel_power[1] / rel_power[4])
-        feature.append(rel_power[1] / rel_power[5])
-        feature.append(rel_power[2] / rel_power[3])
-        feature.append(rel_power[2] / rel_power[4])
-        feature.append(rel_power[2] / rel_power[5])
-        feature.append(rel_power[3] / rel_power[4])
-        feature.append(rel_power[3] / rel_power[5])
-        feature.append(rel_power[4] / rel_power[5])
-        feature.append((rel_power[0] + rel_power[1]) /
-                       (rel_power[2] + rel_power[3] + rel_power[4] +
-                       rel_power[5]))
+        feature.extend(power)
+        # feature.append(power[0] / power[1])
+        # feature.append(power[0] / power[2])
+        # feature.append(power[0] / power[3])
+        # feature.append(power[0] / power[4])
+        # feature.append(power[0] / power[5])
+        feature.append(power[1] / power[2])
+        # feature.append(power[1] / power[3])
+        # feature.append(power[1] / power[4])
+        # feature.append(power[1] / power[5])
+        # feature.append(power[2] / power[3])
+        # feature.append(power[2] / power[4])
+        # feature.append(power[2] / power[5])
+        # feature.append(power[3] / power[4])
+        # feature.append(power[3] / power[5])
+        # feature.append(power[4] / power[5])
+        # feature.append((rel_power[0] + rel_power[1]) /
+        #                (rel_power[2] + rel_power[3] + rel_power[4] +
+        #                rel_power[5]))
         # feature.append(sa.calc_edge_frequency(psd, f, 0.95))
         # feature.append(sa.calc_edge_frequency(psd, f, 0.50))
         # feature.append(f[np.argmax(psd)])
-        feature.append(sa.calc_spectral_entropy(psd))
+        # feature.append(sa.calc_spectral_entropy(psd))
         # feature.append(statistics.mean(psd))
         # feature.append(statistics.variance(psd))
         # feature.append(skew(psd))
