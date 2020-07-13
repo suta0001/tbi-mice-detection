@@ -48,7 +48,7 @@ def eval_performance(models_path, config_file, fold):
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=100,
-                                overlap=config_params['overlap'])
+                                overlap=False)
 
     # get true and predicted labels
     labels = test_gen.get_labels()
