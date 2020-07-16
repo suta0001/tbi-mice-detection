@@ -14,7 +14,7 @@ parser.add_argument('source', default=None,
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
                              'siamesers', 'siamdist', 'siamrsdist',
-                             'pe_spectral'],
+                             'pe_spectral', 'wpe_spectral'],
                     help='feature generator')
 args = parser.parse_args()
 
