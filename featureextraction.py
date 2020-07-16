@@ -39,6 +39,9 @@ def calc_multiple_features(eeg_epochs, features):
         elif feature == 'spectral':
             op = calc_spectral_features
             kwargs = {'fs': 256}
+        elif feature == 'wpe':
+            op = calc_wavelet_pe_features
+            kwargs = {}
         if len(cfeatures) == 0:
             cfeatures.extend(op(eeg_epochs, **kwargs))
         else:
@@ -159,9 +162,9 @@ def calc_wavelet_pe_features(eeg_epochs):
         coeffs = pywt.wavedec(eeg_epoch, 'db4', level=6)
         wcs = []
         n = len(eeg_epoch)
-        wcs.append(pywt.upcoeff('a', coeffs[0], 'db4', level=6, take=n))
+        wcs.append(pywt.upcoef('a', coeffs[0], 'db4', level=6, take=n))
         for i in range(1, 7):
-            wcs.append(pywt.upcoef('d', coeffs[i], 'db4', level=6 - i, take=n))
+            wcs.append(pywt.upcoef('d', coeffs[i], 'db4', level=7 - i, take=n))
         # calculate permutation entropy for each wavelet component
         for wc in wcs:
             for order in [3, 5, 7]:
