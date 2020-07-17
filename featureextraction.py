@@ -246,4 +246,7 @@ def process(eeg_epochs, method):
     elif method == 'pe_spectral':
         op = calc_multiple_features
         kwargs = {'features': ['pe', 'spectral']}
+    elif method == 'wpe_spectral':
+        op = calc_multiple_features
+        kwargs = {'features': ['wpe', 'spectral']}
     return op(eeg_epochs, **kwargs)
