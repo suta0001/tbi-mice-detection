@@ -66,12 +66,14 @@ class DataGenerator(tf.keras.utils.Sequence):
         # if regenerate = False; generate new index file if it does not exist
         if overlap:
             self.out_file = file_template[:-3].format('data') +\
-                '_{}_{}_{}_{}.h5'.format(self.num_classes, self.batch_size,
-                                         self.num_samples, self.test_percent)
+                '_{}_{}_{}_{}_{}.h5'.format(self.num_classes, self.batch_size,
+                                            self.num_samples, self.test_percent,
+                                            self.val_percent)
         else:
             self.out_file = file_template[:-3].format('data_novl') +\
-                '_{}_{}_{}_{}.h5'.format(self.num_classes, self.batch_size,
-                                         self.num_samples, self.test_percent)
+                '_{}_{}_{}_{}_{}.h5'.format(self.num_classes, self.batch_size,
+                                            self.num_samples, self.test_percent,
+                                            self.val_percent)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_samples()
 
