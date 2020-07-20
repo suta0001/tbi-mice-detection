@@ -19,7 +19,6 @@ eeg_epoch_width_in_s = int(sys.argv[2])
 eeg_source = sys.argv[1]
 num_classes = int(sys.argv[3])
 target_names = ['SW', 'SS', 'TW', 'TS']
-decimate_factor = 4
 
 # set up model and training parameters from file
 models_path = 'models/'
@@ -31,6 +30,7 @@ reports = []
 
 # setup the model
 # model is from https://github.com/oscarknagg/voicemap
+decimate_factor = config_params['decimate']
 filters = config_params['filters']
 embedding_dimension = config_params['embedding_dimension']
 dropout = config_params['dropout']
@@ -50,8 +50,8 @@ with tf.device('/cpu:0'):
         model.load_weights(sys.argv[5])
 
 # compile the model
-pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
-# pmodel = model
+# pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+pmodel = model
 pmodel.compile(optimizer=optimizer,
                loss='sparse_categorical_crossentropy',
                metrics=['accuracy'])
@@ -112,15 +112,15 @@ for fold in range(1):
                                  decimate=decimate_factor,
                                  test_percent=test_percent,
                                  overlap=config_params['overlap'])
-    test_gen = dg.DataGenerator(data_path, file_template, species_set,
-                                'test', batch_size, num_classes,
-                                decimate=decimate_factor,
-                                test_percent=test_percent,
-                                overlap=config_params['overlap'])
+    val_gen = dg.DataGenerator(data_path, file_template, species_set,
+                               'validation', batch_size, num_classes,
+                               decimate=decimate_factor,
+                               test_percent=test_percent,
+                               overlap=config_params['overlap'])
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
-                         validation_data=test_gen,
+                         validation_data=val_gen,
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
