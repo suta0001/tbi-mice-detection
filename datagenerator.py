@@ -11,9 +11,9 @@ import tensorflow as tf
 
 class DataGenerator(tf.keras.utils.Sequence):
     """
-    This class generates the data used to train/validate/test a deep neural network.
-    The data division into train, validation, and test sets is done such that
-    each class and species are represented as uniformly as possible.
+    This class generates the data used to train/validate/test a deep neural
+    network. The data division into train, validation, and test sets is done
+    such that each class and species are represented as uniformly as possible.
 
     Currently, it only support num_classes = 4.
 
@@ -187,14 +187,15 @@ class DataGenerator(tf.keras.utils.Sequence):
                                  min_itemsize={'species': 7,
                                                'stage': 5})
                 curr_train_index += num_train_samples
-                sindex = indexes[num_train_samples:num_train_samples + num_val_samples]
+                sindex = indexes[num_train_samples:num_train_samples +
+                                 num_val_samples]
                 if len(sindex) != 0:
                     store.append('data_index/validation',
                                  pd.DataFrame({'species': species,
                                                'stage': stage,
                                                'sindex': sindex,
                                                'label': label},
-                                              index=df_train_index),
+                                              index=df_val_index),
                                  data_columns=True,
                                  min_itemsize={'species': 7,
                                                'stage': 5})
