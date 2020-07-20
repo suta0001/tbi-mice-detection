@@ -11,9 +11,9 @@ import tensorflow as tf
 
 class DataGenerator(tf.keras.utils.Sequence):
     """
-    This class generates the data used to train/test a deep neural network.
-    The data division into train and test sets is done such that each class
-    and species are represented as uniformly as possible.
+    This class generates the data used to train/validate/test a deep neural network.
+    The data division into train, validation, and test sets is done such that
+    each class and species are represented as uniformly as possible.
 
     Currently, it only support num_classes = 4.
 
@@ -21,28 +21,34 @@ class DataGenerator(tf.keras.utils.Sequence):
         file_path: location of HDF5 files containing the EEG epochs
         file_template: template of filenamem, e.g., {}_BL5_ew32.h5
         species_set: set of mice species
-        purpose: purpose of generator - train or test
+        purpose: purpose of generator - train or validation or test
         batch_size: batch size
         num_classes: number of species classes
         regenerate: if True, new samples will be regenerated
         shuffle: if True, dataset are shuffled after each epoch
         decimate: decimation factor
-        test_percent: percentage of pair samples used for test set
+        test_percent: percentage of samples used for test set
+        val_percent: percentage of samples used for validation set
         overlap: if True, use overlapping epochs
     """
     def __init__(self, file_path, file_template, species_set, purpose='train',
                  batch_size=32, num_classes=4, regenerate=False, shuffle=True,
-                 decimate=1, test_percent=20, overlap=True):
+                 decimate=1, test_percent=20, val_percent=10, overlap=True):
         self.file_path = file_path
         self.file_template = file_template
         self.species_set = species_set
-        assert purpose in ('train', 'test'),\
+        assert purpose in ('train', 'test', 'validation'),\
             'purpose must be either train or test'
         self.purpose = purpose
         self.decimate = decimate
         assert test_percent >= 0 and test_percent <= 100,\
             'test_percent must be between 0 and 100'
         self.test_percent = test_percent
+        assert val_percent >= 0 and val_percent <= 100,\
+            'val_percent must be between 0 and 100'
+        self.val_percent = val_percent
+        assert (test_percent + val_percent) < 100,\
+            'test_percent + val_percent must be below 100'
         # check that num_classes is set to 4
         assert num_classes == 4,\
             'Only num_classes = 4 is supported currently'
@@ -136,6 +142,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         if os.path.exists(self.out_file):
             os.remove(self.out_file)
         curr_train_index = 0
+        curr_val_index = 0
         curr_test_index = 0
         store = pd.HDFStore(self.out_file, mode='a', complevel=4,
                             complib='zlib')
@@ -147,10 +154,16 @@ class DataGenerator(tf.keras.utils.Sequence):
                 np.random.shuffle(indexes)
                 num_test_samples = int(np.floor(self.test_percent *
                                                 num_epoch_samples / 100))
-                num_train_samples = num_epoch_samples - num_test_samples
+                num_val_samples = int(np.floor(self.val_percent *
+                                               num_epoch_samples / 100))
+                num_train_samples = (num_epoch_samples - num_test_samples -
+                                     num_val_samples)
                 df_train_index = list(range(curr_train_index,
                                             curr_train_index +
                                             num_train_samples))
+                df_val_index = list(range(curr_val_index,
+                                          curr_val_index +
+                                          num_val_samples))
                 df_test_index = list(range(curr_test_index,
                                            curr_test_index +
                                            num_test_samples))
@@ -166,7 +179,19 @@ class DataGenerator(tf.keras.utils.Sequence):
                                  min_itemsize={'species': 7,
                                                'stage': 5})
                 curr_train_index += num_train_samples
-                sindex = indexes[num_train_samples:]
+                sindex = indexes[num_train_samples:num_train_samples + num_val_samples]
+                if len(sindex) != 0:
+                    store.append('data_index/validation',
+                                 pd.DataFrame({'species': species,
+                                               'stage': stage,
+                                               'sindex': sindex,
+                                               'label': label},
+                                              index=df_train_index),
+                                 data_columns=True,
+                                 min_itemsize={'species': 7,
+                                               'stage': 5})
+                curr_val_index += num_val_samples
+                sindex = indexes[num_train_samples + num_val_samples:]
                 if len(sindex) != 0:
                     store.append('data_index/test',
                                  pd.DataFrame({'species': species,
