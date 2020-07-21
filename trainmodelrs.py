@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.preprocessing import StandardScaler
 import statistics
 
 
@@ -18,7 +19,7 @@ parser.add_argument('pp_step', default=None,
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
                              'siamesers', 'siamdist', 'siamrsdist',
-                             'pe_spectral'],
+                             'pe_spectral', 'wpe_spectral'],
                     help='applied feature generator')
 parser.add_argument('model', default=None,
                     choices=['ffnn3hl', 'knn', 'rf', 'xgb'],
@@ -47,11 +48,26 @@ epochs, labels = du.build_dataset(epochs_path,
                                   args.pp_step,
                                   args.featgen,
                                   dataset_folds[0])
-sss = StratifiedShuffleSplit(n_splits=5, test_size=0.2, random_state=0)
+# if using normalized spectral feature, transform spectral powers into
+# normalized decibel values
+if 'spectral' in args.featgen:
+    baselines = du.calc_baseline_spectral_powers(epochs_path, args.num_classes,
+                                                 args.eeg_epoch_width_in_s,
+                                                 args.pp_step,
+                                                 dataset_folds[0])
+    epochs = du.decibel_normalize(args.featgen, baselines, epochs, labels)
+
+sss = StratifiedShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
 fold = 0
 for train_index, test_index in sss.split(epochs, labels):
     train_epochs, train_labels = epochs[train_index], labels[train_index]
     test_epochs, test_labels = epochs[test_index], labels[test_index]
+
+    # normalize across features
+    normalizer = StandardScaler()
+    normalizer.fit(train_epochs)
+    train_epochs = normalizer.transform(train_epochs)
+    test_epochs = normalizer.transform(test_epochs)
 
     # define classifier
     clf = models.get_ml_model(args.model)
@@ -63,6 +79,7 @@ for train_index, test_index in sss.split(epochs, labels):
         clf.fit(train_epochs, train_labels)
 
     # make prediction
+
     predict_labels = clf.predict(test_epochs)
     if args.model == 'ffnn3hl':
         predict_labels = predict_labels.argmax(axis=1)
