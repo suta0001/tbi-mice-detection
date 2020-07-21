@@ -21,7 +21,6 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
     Returns:
         A list of data epochs and a list of label epochs
     """
-
     data_epochs = []
     labels = []
     for species in species_set:
@@ -57,6 +56,62 @@ def calc_average_features(data_epochs, labels, num_classes):
         temp_epochs = data_epochs[labels == i]
         avg_features[i] = np.mean(temp_epochs, axis=0)
     return avg_features
+
+
+def calc_baseline_spectral_powers(epochs_path, num_classes, epoch_width_in_s,
+                                  pp_step, species_set):
+    """Calculate baseline spectral powers for each class.
+       Supported for 4-class classification only.
+
+    Args:
+        epochs_path: directory path where epoch files are stored
+        num_classes: number of classes
+        epoch_width_in_s: epoch duration in s
+        pp_step: applied preprocessing step(s)
+        species_set: set of species used for the dataset
+
+    Returns:
+        A list of average subband powers from first 5 epochs of each species
+        for all classes (row = class, column = average subband powers).
+        Rows = [Sham Wake, Sham Sleep, TBI Wake, TBI Sleep]
+        Columns = [delta, theta, alpha, sigma, beta, gamma]
+    """
+    baselines_sw = np.zeros(6)
+    baselines_ss = np.zeros(6)
+    baselines_tw = np.zeros(6)
+    baselines_ts = np.zeros(6)
+    num_species_sw = 0
+    num_species_ss = 0
+    num_species_tw = 0
+    num_species_ts = 0
+    for species in species_set:
+        filename = os.path.join(epochs_path,
+                                '{}_BL5_ew{}.h5'.format(species,
+                                                        epoch_width_in_s))
+        groups = read_groups_from_hdf5(filename,
+                                       '{}_{}'.format(pp_step, 'spectral'))
+        for group in groups:
+            fgroup = '{}_spectral/{}'.format(pp_step, group)
+            temp_epochs = np.array(read_data_from_hdf5(filename, fgroup))
+            # average power in each subband for first 5 epochs
+            averages = np.mean(temp_epochs[0:5], axis=0)
+            if 'Sham' in species and group == 'wake':
+                baselines_sw = np.add(baselines_sw, averages[0:6])
+                num_species_sw += 1
+            elif 'Sham' in species and group == 'sleep':
+                baselines_ss = np.add(baselines_ss, averages[0:6])
+                num_species_ss += 1
+            elif 'TBI' in species and group == 'wake':
+                baselines_tw = np.add(baselines_tw, averages[0:6])
+                num_species_tw += 1
+            elif 'TBI' in species and group == 'sleep':
+                baselines_ts = np.add(baselines_ts, averages[0:6])
+                num_species_ts += 1
+    baselines = [np.divide(baselines_sw, num_species_sw),
+                 np.divide(baselines_ss, num_species_ss),
+                 np.divide(baselines_tw, num_species_tw),
+                 np.divide(baselines_ts, num_species_ts)]
+    return baselines
 
 
 def create_epochs(time_window_in_s=4, edf_filename=None,
@@ -166,6 +221,39 @@ def create_epochs(time_window_in_s=4, edf_filename=None,
     stage_file.close()
 
     return eeg_epochs, stage_epochs
+
+
+def decibel_normalize(featgen, baselines, epochs, labels):
+    """Apply decibel normalization to subband power.
+
+    Args:
+        featgen: applied feature generator (normsp or pe_normsp only)
+        baselines: subband power baselines
+        epochs: feature epochs to normalize
+        labels: feature labels
+
+    Returns:
+        Normalized feature epochs
+    """
+    norm_epochs = np.empty_like(epochs)
+    for i in range(len(labels)):
+        cur_baselines = baselines[labels[i]]
+        if featgen == 'spectral':
+            db_norm_powers = np.log10(np.divide(epochs[i][0:6], cur_baselines))
+            norm_epochs[i] = np.array(db_norm_powers.tolist() + [epochs[i][6]])
+        elif featgen == 'pe_spectral':
+            db_norm_powers = np.log10(np.divide(epochs[i][9:15],
+                                      cur_baselines))
+            norm_epochs[i] = np.array(epochs[i][0:9].tolist() +
+                                      db_norm_powers.tolist() +
+                                      [epochs[i][15]])
+        elif featgen == 'wpe_spectral':
+            db_norm_powers = np.log10(np.divide(epochs[i][63:69],
+                                      cur_baselines))
+            norm_epochs[i] = np.array(epochs[i][0:63].tolist() +
+                                      db_norm_powers.tolist() +
+                                      [epochs[i][69]])
+    return norm_epochs
 
 
 def get_class_label(num_classes, species, stage):
