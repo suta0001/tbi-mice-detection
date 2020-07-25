@@ -9,7 +9,7 @@ import preprocess as pp
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Apply preprocessing steps.')
 parser.add_argument('pp_set', default='pp4',
-                    choices=['pp1', 'pp2', 'pp3', 'pp4'],
+                    choices=['pp1', 'pp2', 'pp3', 'pp4', 'pp5'],
                     help='set of preprocessing steps')
 args = parser.parse_args()
 

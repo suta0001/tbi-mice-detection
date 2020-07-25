@@ -14,7 +14,7 @@ import statistics
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Train and cross-validate model')
 parser.add_argument('pp_step', default=None,
-                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4'],
+                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4', 'pp5'],
                     help='applied preprocessing step')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
