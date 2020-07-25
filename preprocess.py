@@ -154,12 +154,19 @@ def do_decimate(eeg_epochs, dec_factor=4):
 def process(eeg_epochs, pp_set='pp4'):
     if pp_set == 'pp1':
         ops_set = [do_bandpass_filter]
+        kwargs = {}
     elif pp_set == 'pp2':
         ops_set = [do_bandpass_filter, do_awica]
+        kwargs = {}
     elif pp_set == 'pp3':
         ops_set = [do_lowpass_filter]
+        kwargs = {}
     elif pp_set == 'pp4':
         ops_set = [do_decimate]
+        kwargs = {'dec_factor': 4}
+    elif pp_set == 'pp5':
+        ops_set = [do_decimate]
+        kwargs = {'dec_factor': 2}
     for ops in ops_set:
-        eeg_epochs = ops(eeg_epochs)
+        eeg_epochs = ops(eeg_epochs, **kwargs)
     return eeg_epochs
