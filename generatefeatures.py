@@ -9,7 +9,7 @@ import os
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Generate features.')
 parser.add_argument('source', default=None,
-                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4'],
+                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4', 'pp5'],
                     help='source of epochs to be processed')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
