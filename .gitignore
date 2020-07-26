@@ -2,6 +2,7 @@
 __pycache__
 *.code-workspace
 *.csv
+*.h5
 *.json
 *.sh
 data
