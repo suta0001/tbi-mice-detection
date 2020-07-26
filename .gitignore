@@ -3,6 +3,7 @@ __pycache__
 *.code-workspace
 *.csv
 *.h5
+*.icloud
 *.json
 *.sh
 data
