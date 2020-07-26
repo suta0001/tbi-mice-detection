@@ -1,0 +1,15 @@
+# general setup
+config_name: cnn1drs16
+num_classes: 4
+epoch_width: 32
+overlap: no
+decimate: 2
+
+# training parameters
+epochs: 50
+test_percent: 20
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 8
+filters: 128 
