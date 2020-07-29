@@ -3,6 +3,7 @@ config_name: cnn1drs7
 num_classes: 4
 epoch_width: 64
 overlap: no
+decimate: 4
 
 # training parameters
 epochs: 50
