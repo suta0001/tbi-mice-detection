@@ -53,8 +53,8 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
                                                           species, group)]
     # convert datasets to numpy arrays
     if num_samples != 0:
-        data_epochs = np.array(data_epochs[:num_samples, :])
-        labels = column_or_1d(np.array(labels[:num_samples, :], dtype=int))
+        data_epochs = np.array(data_epochs[:num_samples])
+        labels = column_or_1d(np.array(labels[:num_samples], dtype=int))
     else:
         data_epochs = np.array(data_epochs)
         labels = column_or_1d(np.array(labels, dtype=int))
