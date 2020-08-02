@@ -2,12 +2,13 @@ import csv
 import h5py
 import numpy as np
 import os
+import random
 import pyedflib
 from sklearn.utils.validation import column_or_1d
 
 
 def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
-                  species_set):
+                  species_set, num_samples=0):
     """Build labeled dataset for training or validation from source epochs.
 
     Args:
@@ -17,12 +18,14 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
         pp_step: applied preprocessing step(s)
         featgen: applied feature generator
         species_set: set of species used for the dataset
+        num_samples: number of samples to build
 
     Returns:
         A list of data epochs and a list of label epochs
     """
     data_epochs = []
     labels = []
+    num_group_samples = nu
     for species in species_set:
         filename = os.path.join(epochs_path,
                                 '{}_BL5_ew{}.h5'.format(species,
@@ -33,18 +36,27 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
         else:
             groups = read_groups_from_hdf5(filename,
                                            '{}'.format(pp_step))
+        if num_samples != 0:
+            num_group_samples = int(np.ceil(num_samples / len(species_set)
+                                            / len(groups)))
         for group in groups:
             if featgen is not None:
                 fgroup = '{}_{}/{}'.format(pp_step, featgen, group)
             else:
                 fgroup = '{}/{}'.format(pp_step, group)
             temp_epochs = read_data_from_hdf5(filename, fgroup)
+            if num_samples != 0:
+                temp_epochs = random.sample(temp_epochs, num_group_samples)
             data_epochs.extend(temp_epochs)
             labels += len(temp_epochs) * [get_class_label(num_classes,
                                                           species, group)]
     # convert datasets to numpy arrays
-    data_epochs = np.array(data_epochs)
-    labels = column_or_1d(np.array(labels, dtype=int))
+    if num_samples != 0:
+        data_epochs = np.array(data_epochs[:num_samples])
+        labels = column_or_1d(np.array(labels[:num_samples], dtype=int))
+    else:
+        data_epochs = np.array(data_epochs)
+        labels = column_or_1d(np.array(labels, dtype=int))
     return data_epochs, labels
 
 
