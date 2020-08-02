@@ -45,7 +45,8 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
                 fgroup = '{}/{}'.format(pp_step, group)
             temp_epochs = read_data_from_hdf5(filename, fgroup)
             if num_samples != 0:
-                temp_epochs = random.sample(temp_epochs, num_group_samples)
+                temp_epochs = random.shuffle(temp_epochs)
+                temp_epochs = temp_epochs[:num_group_samples]
             data_epochs.extend(temp_epochs)
             labels += len(temp_epochs) * [get_class_label(num_classes,
                                                           species, group)]
