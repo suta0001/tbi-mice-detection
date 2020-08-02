@@ -30,10 +30,12 @@ class DataGenerator(tf.keras.utils.Sequence):
         test_percent: percentage of samples used for test set
         val_percent: percentage of samples used for validation set
         overlap: if True, use overlapping epochs
+        num_samples: number of samples to generate
     """
     def __init__(self, file_path, file_template, species_set, purpose='train',
                  batch_size=32, num_classes=4, regenerate=False, shuffle=True,
-                 decimate=1, test_percent=20, val_percent=10, overlap=True):
+                 decimate=1, test_percent=20, val_percent=10, overlap=True,
+                 num_samples=0):
         self.file_path = file_path
         self.file_template = file_template
         self.species_set = species_set
@@ -57,7 +59,11 @@ class DataGenerator(tf.keras.utils.Sequence):
             self.stages = ['wake', 'sleep']
         elif num_classes == 6:
             self.stages = ['wake', 'nrem', 'rem']
-        self.num_samples = self._get_total_num_samples()
+        self.num_total_samples = self._get_total_num_samples()
+        if num_samples == 0:
+            self.num_samples = self.num_total_samples
+        else:
+            self.num_samples = num_samples
         assert batch_size <= self.num_samples,\
             'Batch size must be <= number of (train or test) samples'
         self.batch_size = batch_size
@@ -83,7 +89,8 @@ class DataGenerator(tf.keras.utils.Sequence):
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_samples()
 
-        # set the generator to be either train or test data generator
+        # set the generator to be either train, validation, or test data
+        # generator
         self.df = pd.read_hdf(self.out_file,
                               'data_index/{}'.format(self.purpose), mode='r')
         self.num_samples = len(self.df.index)
@@ -158,13 +165,19 @@ class DataGenerator(tf.keras.utils.Sequence):
             for stage in self.stages:
                 label = du.get_class_label(self.num_classes, species, stage)
                 num_epoch_samples = self.get_num_samples(species, stage)
-                indexes = [i for i in range(num_epoch_samples)]
-                np.random.shuffle(indexes)
+                if self.num_samples != self.num_total_samples:
+                    num_class_samples = (self.num_samples /
+                                         len(self.species_set) /
+                                         len(self.stages))
+                else:
+                    num_class_samples = num_epoch_samples
+                indexes = random.sample(list(range(num_epoch_samples)),
+                                        num_class_samples)
                 num_test_samples = int(np.floor(self.test_percent *
-                                                num_epoch_samples / 100))
+                                                num_class_samples / 100))
                 num_val_samples = int(np.floor(self.val_percent *
-                                               num_epoch_samples / 100))
-                num_train_samples = (num_epoch_samples - num_test_samples -
+                                               num_class_samples / 100))
+                num_train_samples = (num_class_samples - num_test_samples -
                                      num_val_samples)
                 df_train_index = list(range(curr_train_index,
                                             curr_train_index +
