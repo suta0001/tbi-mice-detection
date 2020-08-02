@@ -45,15 +45,16 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
                 fgroup = '{}/{}'.format(pp_step, group)
             temp_epochs = read_data_from_hdf5(filename, fgroup)
             if num_samples != 0:
-                temp_epochs = random.shuffle(temp_epochs)
-                temp_epochs = temp_epochs[:num_group_samples]
+                idx = random.sample(list(range(len(temp_epochs))),
+                                    num_group_samples)
+                temp_epochs = temp_epochs[idx, :]
             data_epochs.extend(temp_epochs)
             labels += len(temp_epochs) * [get_class_label(num_classes,
                                                           species, group)]
     # convert datasets to numpy arrays
     if num_samples != 0:
-        data_epochs = np.array(data_epochs[:num_samples])
-        labels = column_or_1d(np.array(labels[:num_samples], dtype=int))
+        data_epochs = np.array(data_epochs[:num_samples, :])
+        labels = column_or_1d(np.array(labels[:num_samples, :], dtype=int))
     else:
         data_epochs = np.array(data_epochs)
         labels = column_or_1d(np.array(labels, dtype=int))
