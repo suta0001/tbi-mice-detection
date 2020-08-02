@@ -25,7 +25,6 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
     """
     data_epochs = []
     labels = []
-    num_group_samples = nu
     for species in species_set:
         filename = os.path.join(epochs_path,
                                 '{}_BL5_ew{}.h5'.format(species,
