@@ -137,7 +137,7 @@ for label in target_names:
         header_labels.append('{}_{}'.format(label, metric))
 outputs.append(header_labels)
 # form array of metric values and add to outputs
-for i in range(len(dataset_folds)):
+for i in range(fold):
     metric_values = [i, reports[i]['accuracy']]
     for label in target_names:
         for metric in metrics:
