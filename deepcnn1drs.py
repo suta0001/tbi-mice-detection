@@ -111,12 +111,14 @@ for fold in range(1):
                                  'train', batch_size, num_classes,
                                  decimate=decimate_factor,
                                  test_percent=test_percent,
-                                 overlap=config_params['overlap'])
+                                 overlap=config_params['overlap'],
+                                 num_samples=config_params['num_samples'])
     val_gen = dg.DataGenerator(data_path, file_template, species_set,
                                'validation', batch_size, num_classes,
                                decimate=decimate_factor,
                                test_percent=test_percent,
-                               overlap=config_params['overlap'])
+                               overlap=config_params['overlap'],
+                               num_samples=config_params['num_samples'])
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
@@ -129,7 +131,8 @@ for fold in range(1):
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=test_percent,
-                                overlap=config_params['overlap'])
+                                overlap=config_params['overlap'],
+                                num_samples=config_params['num_samples'])
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
         config_params['num_classes'],
