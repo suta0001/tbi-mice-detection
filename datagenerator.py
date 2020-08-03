@@ -85,7 +85,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                                                self.num_samples,
                                                self.decimate,
                                                self.val_percent,
-                                               self.val_percent)
+                                               self.test_percent)
         if not os.path.exists(self.out_file) or regenerate:
             self._generate_labeled_samples()
 
