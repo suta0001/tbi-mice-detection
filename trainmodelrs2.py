@@ -41,7 +41,7 @@ accuracies = []
 reports = []
 template = None
 common_labels = None
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds2.txt')]
+dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
 epochs, labels = du.build_dataset(epochs_path,
                                   args.num_classes,
                                   args.eeg_epoch_width_in_s,
