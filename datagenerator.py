@@ -166,9 +166,9 @@ class DataGenerator(tf.keras.utils.Sequence):
                 label = du.get_class_label(self.num_classes, species, stage)
                 num_epoch_samples = self.get_num_samples(species, stage)
                 if self.num_samples != self.num_total_samples:
-                    num_class_samples = int(np.ceil((self.num_samples /
-                                            len(self.species_set) /
-                                            len(self.stages))))
+                    num_class_samples = int(np.ceil((self.num_samples *
+                                            num_epoch_samples /
+                                            self.num_total_samples)))
                 else:
                     num_class_samples = num_epoch_samples
                 indexes = random.sample(list(range(num_epoch_samples)),
