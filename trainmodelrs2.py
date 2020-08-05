@@ -124,10 +124,20 @@ for name in target_names:
 # write to file
 if args.no_overlap:
     outfile = 'metrics/{}rs2_novl_{}c_ew{}_{}_{}_metrics.csv'
+    moutfile = 'metrics/{}rs2_novl_{}c_ew{}_{}_{}_avg_metrics.csv'
+    soutfile = 'metrics/{}rs2_novl_{}c_ew{}_{}_{}_std_metrics.csv'
 else:
     outfile = 'metrics/{}rs2_{}c_ew{}_{}_{}_metrics.csv'
+    moutfile = 'metrics/{}rs2_{}c_ew{}_{}_{}_avg_metrics.csv'
+    soutfile = 'metrics/{}rs2_{}c_ew{}_{}_{}_std_metrics.csv'
 outfile = outfile.format(args.model, args.num_classes,
                          args.eeg_epoch_width_in_s, args.pp_step, args.featgen)
+moutfile = moutfile.format(args.model, args.num_classes,
+                           args.eeg_epoch_width_in_s, args.pp_step,
+                           args.featgen)
+soutfile = soutfile.format(args.model, args.num_classes,
+                           args.eeg_epoch_width_in_s, args.pp_step,
+                           args.featgen)
 metrics = ['precision', 'recall', 'f1-score', 'support']
 outputs = []
 # form array of header labels and add to outputs
@@ -144,3 +154,31 @@ for i in range(fold):
             metric_values.append(reports[i][label][metric])
     outputs.append(metric_values)
 du.write_data(outfile, outputs)
+
+# summary data
+# form array of header labels and add to outputs
+moutputs = []
+soutputs = []
+header_labels = ['model', 'num_classes', 'epoch_width', 'overlap',
+                 'num_samples', 'preprocess', 'feat', 'accuracy']
+for label in target_names:
+    for metric in metrics:
+        header_labels.append('{}_{}'.format(label, metric))
+moutputs.append(header_labels)
+soutputs.append(header_labels)
+# form array of metric values and add to outputs
+mmetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
+                  not args.no_overlap, 9539, args.pp_step, args.featgen,
+                  statistics.mean(accuracies)]
+smetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
+                  not args.no_overlap, 9539, args.pp_step, args.featgen,
+                  statistics.stdev(accuracies)]
+for label in target_names:
+    for metric in metrics:
+        values = [reports[i][label][metric] for i in range(len(reports))]
+        mmetric_values.append(statistics.mean(values))
+        smetric_values.append(statistics.stdev(values))
+moutputs.append(mmetric_values)
+soutputs.append(smetric_values)
+du.write_data(moutfile, moutputs)
+du.write_data(soutfile, soutputs)
