@@ -11,14 +11,21 @@ import yaml
 # general setup parameters
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
-decimate_factor = 4
 models_path = 'models'
-config_files = ['cnn1drs0_4c_ew64_50.yaml',
-                'cnn1drs1_4c_ew64_50.yaml',
-                'cnn1drs2_4c_ew64_50.yaml',
-                'cnn1drs3_4c_ew64_50.yaml',
-                'cnn1drs4_4c_ew64_50.yaml',
-                'cnn1drs5_4c_ew64_50.yaml']
+config_files = ['cnn1drs17_4c_ew4_50.yaml',
+                'cnn1drs17_4c_ew8_50.yaml',
+                'cnn1drs17_4c_ew16_50.yaml',
+                'cnn1drs17_4c_ew32_50.yaml',
+                'cnn1drs18_4c_ew4_50.yaml',
+                'cnn1drs18_4c_ew8_50.yaml',
+                'cnn1drs18_4c_ew16_50.yaml',
+                'cnn1drs18_4c_ew32_50.yaml',
+                'cnn1drs19_4c_ew4_50.yaml',
+                'cnn1drs19_4c_ew8_50.yaml',
+                'cnn1drs19_4c_ew16_50.yaml',
+                'cnn1drs19_4c_ew32_50.yaml']
+# config_files = ['cnn1drs13_4c_ew64_50.yaml',
+#                 'cnn1drs14_4c_ew64_50.yaml']
 outfile = 'cnn1drs_4c_metrics.csv'
 
 
@@ -33,7 +40,7 @@ def eval_performance(models_path, config_file):
         data_path = 'data/epochs_{}c'.format(str(num_classes))
     else:
         data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
-    
+
     # load model
     filepath = os.path.join(models_path,
                             '{}_0_best.h5'.format(config_file[:-5]))
@@ -43,6 +50,7 @@ def eval_performance(models_path, config_file):
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
     dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
     species_set = dataset_folds[0]
+    decimate_factor = config_params['decimate']
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     test_gen = dg.DataGenerator(data_path, file_template, species_set,
                                 'test', batch_size, num_classes,
