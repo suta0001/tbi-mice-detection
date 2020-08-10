@@ -160,10 +160,10 @@ moutputs.append(header_labels)
 soutputs.append(header_labels)
 # form array of metric values and add to outputs
 mmetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
-                  not args.no_overlap, 'all', args.pp_step, args.featgen,
+                  'mixed', 'all', args.pp_step, args.featgen,
                   statistics.mean(accuracies)]
 smetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
-                  not args.no_overlap, 'all', args.pp_step, args.featgen,
+                  'mixed', 'all', args.pp_step, args.featgen,
                   statistics.stdev(accuracies)]
 for label in target_names:
     for metric in metrics:
