@@ -57,7 +57,8 @@ def eval_performance(models_path, config_file):
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=config_params['test_percent'],
-                                overlap=config_params['overlap'])
+                                overlap=config_params['overlap'],
+                                num_samples=config_params['num_samples'])
 
     # get true and predicted labels
     labels = test_gen.get_labels()
