@@ -62,10 +62,10 @@ for fold, dataset_fold in enumerate(dataset_folds):
                                                      args.eeg_epoch_width_in_s,
                                                      args.pp_step,
                                                      dataset_fold[0:9])
-        train_epochs = du.decibel_normalize(args.featgen, baselines, train_epochs,
-                                            train_labels)
-        test_epochs = du.decibel_normalize(args.featgen, baselines, test_epochs,
-                                           test_labels)
+        train_epochs = du.decibel_normalize(args.featgen, baselines,
+                                            train_epochs, train_labels)
+        test_epochs = du.decibel_normalize(args.featgen, baselines,
+                                           test_epochs, test_labels)
 
     # normalize across features
     normalizer = StandardScaler()
