@@ -5,6 +5,7 @@ import os
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
 import statistics
 
 
@@ -12,12 +13,12 @@ import statistics
 # set command-line arguments parser
 parser = au.set_common_arg_parser('Train and cross-validate model')
 parser.add_argument('pp_step', default=None,
-                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4'],
+                    choices=['eeg', 'pp1', 'pp2', 'pp3', 'pp4', 'pp5'],
                     help='applied preprocessing step')
 parser.add_argument('featgen', default=None,
                     choices=['pe', 'vg', 'spectral', 'timed', 'wpe', 'siamese',
                              'siamesers', 'siamdist', 'siamrsdist',
-                             'pe_spectral'],
+                             'pe_spectral', 'wpe_spectral'],
                     help='applied feature generator')
 parser.add_argument('model', default=None,
                     choices=['ffnn3hl', 'knn', 'rf', 'xgb'],
@@ -39,20 +40,38 @@ accuracies = []
 reports = []
 template = None
 common_labels = None
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds2.txt')]
+dataset_folds = [line.rstrip().split(',') for line in open('cv_folds3.txt')]
 for fold, dataset_fold in enumerate(dataset_folds):
     train_epochs, train_labels = du.build_dataset(epochs_path,
                                                   args.num_classes,
                                                   args.eeg_epoch_width_in_s,
                                                   args.pp_step,
                                                   args.featgen,
-                                                  dataset_fold[0:8])
+                                                  dataset_fold[0:9])
     test_epochs, test_labels = du.build_dataset(epochs_path,
                                                 args.num_classes,
                                                 args.eeg_epoch_width_in_s,
                                                 args.pp_step,
                                                 args.featgen,
-                                                dataset_fold[8:])
+                                                dataset_fold[9:])
+    # if using normalized spectral feature, transform spectral powers into
+    # normalized decibel values
+    if 'spectral' in args.featgen:
+        baselines = du.calc_baseline_spectral_powers(epochs_path,
+                                                     args.num_classes,
+                                                     args.eeg_epoch_width_in_s,
+                                                     args.pp_step,
+                                                     dataset_fold[0:9])
+        train_epochs = du.decibel_normalize(args.featgen, baselines, train_epochs,
+                                            train_labels)
+        test_epochs = du.decibel_normalize(args.featgen, baselines, test_epochs,
+                                           test_labels)
+
+    # normalize across features
+    normalizer = StandardScaler()
+    normalizer.fit(train_epochs)
+    train_epochs = normalizer.transform(train_epochs)
+    test_epochs = normalizer.transform(test_epochs)
 
     # define classifier
     clf = models.get_ml_model(args.model)
@@ -105,11 +124,21 @@ for name in target_names:
 
 # write to file
 if args.no_overlap:
-    outfile = '{}_novl_{}c_ew{}_{}_{}_metrics.csv'
+    outfile = 'metrics/{}_novl_{}c_ew{}_{}_{}_metrics.csv'
+    moutfile = 'metrics/{}_novl_{}c_ew{}_{}_{}_avg_metrics.csv'
+    soutfile = 'metrics/{}_novl_{}c_ew{}_{}_{}_std_metrics.csv'
 else:
-    outfile = '{}_{}c_ew{}_{}_{}_metrics.csv'
+    outfile = 'metrics/{}_{}c_ew{}_{}_{}_metrics.csv'
+    moutfile = 'metrics/{}_{}c_ew{}_{}_{}_avg_metrics.csv'
+    soutfile = 'metrics/{}_{}c_ew{}_{}_{}_std_metrics.csv'
 outfile = outfile.format(args.model, args.num_classes,
                          args.eeg_epoch_width_in_s, args.pp_step, args.featgen)
+moutfile = moutfile.format(args.model, args.num_classes,
+                           args.eeg_epoch_width_in_s, args.pp_step,
+                           args.featgen)
+soutfile = soutfile.format(args.model, args.num_classes,
+                           args.eeg_epoch_width_in_s, args.pp_step,
+                           args.featgen)
 metrics = ['precision', 'recall', 'f1-score', 'support']
 outputs = []
 # form array of header labels and add to outputs
@@ -126,3 +155,31 @@ for i in range(len(dataset_folds)):
             metric_values.append(reports[i][label][metric])
     outputs.append(metric_values)
 du.write_data(outfile, outputs)
+
+# summary data
+# form array of header labels and add to outputs
+moutputs = []
+soutputs = []
+header_labels = ['model', 'num_classes', 'epoch_width', 'overlap',
+                 'num_samples', 'preprocess', 'feat', 'accuracy']
+for label in target_names:
+    for metric in metrics:
+        header_labels.append('{}_{}'.format(label, metric))
+moutputs.append(header_labels)
+soutputs.append(header_labels)
+# form array of metric values and add to outputs
+mmetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
+                  not args.no_overlap, 'all', args.pp_step, args.featgen,
+                  statistics.mean(accuracies)]
+smetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
+                  not args.no_overlap, 'all', args.pp_step, args.featgen,
+                  statistics.stdev(accuracies)]
+for label in target_names:
+    for metric in metrics:
+        values = [reports[i][label][metric] for i in range(len(reports))]
+        mmetric_values.append(statistics.mean(values))
+        smetric_values.append(statistics.stdev(values))
+moutputs.append(mmetric_values)
+soutputs.append(smetric_values)
+du.write_data(moutfile, moutputs)
+du.write_data(soutfile, soutputs)
