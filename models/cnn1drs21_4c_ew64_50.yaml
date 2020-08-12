@@ -1,0 +1,16 @@
+# general setup
+config_name: cnn1drs21
+num_classes: 4
+epoch_width: 64
+overlap: no
+decimate: 2
+
+# training parameters
+epochs: 50
+test_percent: 20
+num_samples: 0 
+
+# model parameters
+dropout: 0.10
+embedding_dimension: 2
+filters: 128 
