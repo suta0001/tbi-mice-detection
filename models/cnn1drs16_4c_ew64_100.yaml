@@ -8,6 +8,7 @@ decimate: 2
 # training parameters
 epochs: 100 
 test_percent: 20
+num_samples: 0
 
 # model parameters
 dropout: 0.10
