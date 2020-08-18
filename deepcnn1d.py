@@ -19,7 +19,6 @@ eeg_epoch_width_in_s = int(sys.argv[2])
 eeg_source = sys.argv[1]
 num_classes = int(sys.argv[3])
 target_names = ['SW', 'SS', 'TW', 'TS']
-decimate_factor = 4
 
 # set up model and training parameters from file
 models_path = 'models/'
@@ -31,6 +30,7 @@ reports = []
 
 # setup the model
 # model is from https://github.com/oscarknagg/voicemap
+decimate_factor = config_params['decimate']
 filters = config_params['filters']
 embedding_dimension = config_params['embedding_dimension']
 dropout = config_params['dropout']
@@ -41,7 +41,7 @@ batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
 epochs = config_params['epochs']
 
 # set up data source
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
+dataset_folds = [line.rstrip().split(',') for line in open('cv_folds3.txt')]
 if config_params['overlap']:
     data_path = 'data/epochs_{}c'.format(str(num_classes))
 else:
@@ -64,12 +64,12 @@ for fold in range(len(dataset_folds)):
             model.load_weights(sys.argv[5])
 
     # compile the model
-    pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
-    # pmodel = model
+    # pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+    pmodel = model
     pmodel.compile(optimizer=optimizer,
                    loss='sparse_categorical_crossentropy',
                    metrics=['accuracy'])
-    
+
     # set up tensorboard
     tensorboard = tf.keras.callbacks.TensorBoard()
     log_dir = 'tb_logs/{}_{}c_ew{}_{}_{}'.format(config_params['config_name'],
@@ -107,24 +107,28 @@ for fold in range(len(dataset_folds)):
     callbacks = [ckpt_best, ckpt_reg, tensorboard]
 
     # set up train and test sets
-    train_set = dataset_folds[fold][0:7]
-    test_set = dataset_folds[fold][7:]
+    train_set = dataset_folds[fold][0:9]
+    test_set = dataset_folds[fold][9:]
 
     # train the model
     train_gen = dg.DataGenerator(data_path, file_template, train_set,
                                  'train', batch_size, num_classes,
                                  decimate=decimate_factor,
                                  test_percent=0,
-                                 overlap=config_params['overlap'])
-    test_gen = dg.DataGenerator(data_path, file_template, test_set,
-                                'test', batch_size, num_classes,
-                                decimate=decimate_factor,
-                                test_percent=100,
-                                overlap=config_params['overlap'])
+                                 val_percent=12.5,
+                                 overlap=config_params['overlap'],
+                                 num_samples=config_params['num_samples'])
+    val_gen = dg.DataGenerator(data_path, file_template, test_set,
+                               'validation', batch_size, num_classes,
+                               decimate=decimate_factor,
+                               test_percent=100,
+                               val_percent=0,
+                               overlap=config_params['overlap'],
+                               num_samples=config_params['num_samples'])
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
-                         validation_data=test_gen,
+                         validation_data=val_gen,
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
@@ -133,7 +137,9 @@ for fold in range(len(dataset_folds)):
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=100,
-                                overlap=config_params['overlap'])
+                                val_percent=0,
+                                overlap=config_params['overlap'],
+                                num_samples=config_params['num_samples'])
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
         config_params['num_classes'],
