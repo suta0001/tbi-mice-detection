@@ -118,11 +118,11 @@ for fold in range(len(dataset_folds)):
                                  val_percent=12.5,
                                  overlap=config_params['overlap'],
                                  num_samples=config_params['num_samples'])
-    val_gen = dg.DataGenerator(data_path, file_template, test_set,
+    val_gen = dg.DataGenerator(data_path, file_template, train_set,
                                'validation', batch_size, num_classes,
                                decimate=decimate_factor,
-                               test_percent=100,
-                               val_percent=0,
+                               test_percent=0,
+                               val_percent=12.5,
                                overlap=config_params['overlap'],
                                num_samples=config_params['num_samples'])
     pmodel.fit_generator(train_gen,
@@ -136,7 +136,7 @@ for fold in range(len(dataset_folds)):
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
-                                test_percent=100,
+                                test_percent=99.9,
                                 val_percent=0,
                                 overlap=config_params['overlap'],
                                 num_samples=config_params['num_samples'])
