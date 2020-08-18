@@ -116,7 +116,7 @@ for fold in range(len(dataset_folds)):
                                  val_percent=12.5,
                                  overlap=config_params['overlap'],
                                  num_samples=config_params['num_samples'])
-    val_gen = dg.DataGenerator(data_path, file_template, test_set,
+    val_gen = dg.DataGenerator(ovl_data_path, file_template, train_set,
                                'validation', batch_size, num_classes,
                                decimate=decimate_factor,
                                test_percent=0,
@@ -130,7 +130,7 @@ for fold in range(len(dataset_folds)):
                          max_queue_size=1)
 
     # calculate accuracy and confusion matrix
-    test_gen = dg.DataGenerator(data_path, file_template, test_set,
+    test_gen = dg.DataGenerator(novl_data_path, file_template, test_set,
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
