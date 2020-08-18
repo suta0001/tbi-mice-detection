@@ -34,7 +34,7 @@ class DataGenerator(tf.keras.utils.Sequence):
     """
     def __init__(self, file_path, file_template, species_set, purpose='train',
                  batch_size=32, num_classes=4, regenerate=False, shuffle=True,
-                 decimate=1, test_percent=20, val_percent=10, overlap=True,
+                 decimate=1, test_percent=20.0, val_percent=10.0, overlap=True,
                  num_samples=0):
         self.file_path = file_path
         self.file_template = file_template
