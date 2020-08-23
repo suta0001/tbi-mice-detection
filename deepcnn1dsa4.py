@@ -114,15 +114,15 @@ for fold in range(len(dataset_folds)):
                                  decimate=decimate_factor,
                                  test_percent=0,
                                  val_percent=12.5,
-                                 overlap=config_params['overlap'],
-                                 num_samples=config_params['num_samples'])
-    val_gen = dg.DataGenerator(novl_data_path, file_template, test_set,
-                               'test', batch_size, num_classes,
+                                 overlap=True,
+                                 num_samples=0)
+    val_gen = dg.DataGenerator(ovl_data_path, file_template, train_set,
+                               'validation', batch_size, num_classes,
                                decimate=decimate_factor,
-                               test_percent=99.9,
-                               val_percent=0,
-                               overlap=config_params['overlap'],
-                               num_samples=config_params['num_samples'])
+                               test_percent=0,
+                               val_percent=12.5,
+                               overlap=True,
+                               num_samples=0)
     pmodel.fit_generator(train_gen,
                          epochs=epochs, verbose=1,
                          callbacks=callbacks,
@@ -136,8 +136,8 @@ for fold in range(len(dataset_folds)):
                                 decimate=decimate_factor,
                                 test_percent=99.9,
                                 val_percent=0,
-                                overlap=config_params['overlap'],
-                                num_samples=config_params['num_samples'])
+                                overlap=False,
+                                num_samples=0)
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
         config_params['num_classes'],
