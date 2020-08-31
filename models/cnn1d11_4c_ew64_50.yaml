@@ -1,0 +1,17 @@
+# general setup
+config_name: cnn1d11
+num_classes: 4
+epoch_width: 64
+overlap: no
+decimate: 2
+
+# training parameters
+epochs: 50
+num_samples: 0
+
+# model parameters
+kernel_width: 1
+dropout: 0.10
+embedding_dimension: 8
+filters: 128
+
