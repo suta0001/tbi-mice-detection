@@ -10,18 +10,18 @@ import yaml
 # general setup parameters
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
-decimate_factor = 4
 models_path = 'models'
-config_files = ['cnn1d0_4c_ew64_50.yaml',
-                'cnn1d1_4c_ew64_50.yaml',
-                'cnn1d2_4c_ew64_50.yaml',
-                'cnn1d3_4c_ew64_50.yaml',
-                'cnn1d4_4c_ew64_50.yaml',
-                'cnn1d5_4c_ew64_50.yaml',
-                'cnn1d6_4c_ew64_50.yaml',
-                'cnn1d7_4c_ew64_50.yaml',
-                'cnn1d8_4c_ew64_50.yaml',
-                'cnn1d9_4c_ew64_50.yaml']
+# config_files = ['cnn1d0_4c_ew64_50.yaml',
+#                 'cnn1d1_4c_ew64_50.yaml',
+#                 'cnn1d2_4c_ew64_50.yaml',
+#                 'cnn1d3_4c_ew64_50.yaml',
+#                 'cnn1d4_4c_ew64_50.yaml',
+#                 'cnn1d5_4c_ew64_50.yaml',
+#                 'cnn1d6_4c_ew64_50.yaml',
+#                 'cnn1d7_4c_ew64_50.yaml',
+#                 'cnn1d8_4c_ew64_50.yaml',
+#                 'cnn1d9_4c_ew64_50.yaml']
+config_files = ['cnn1d10_4c_ew64_50.yaml']
 outfile = 'metrics/cnn1d_4c_metrics.csv'
 
 
@@ -44,15 +44,18 @@ def eval_performance(models_path, config_file, fold):
 
     # define the test set
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
-    dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
-    species_set = dataset_folds[fold][7:]
+    dataset_folds = [line.rstrip().split(',') for line in open('cv_folds3.txt')]
+    species_set = dataset_folds[fold][9:]
+    decimate_factor = config_params['decimate']
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     test_gen = dg.DataGenerator(data_path, file_template, species_set,
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
-                                test_percent=100,
-                                overlap=config_params['overlap'])
+                                test_percent=99.9,
+                                val_percent=0,
+                                overlap=config_params['overlap'],
+                                num_samples=config_params['num_samples'])
 
     # get true and predicted labels
     labels = test_gen.get_labels()
