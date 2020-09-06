@@ -68,6 +68,56 @@ def get_baseline_convolutional_encoder(filters, embedding_dimension,
     return encoder
 
 
+def get_cnn1d_with_attention(num_classes, filters, embedding_dimension,
+                             input_shape, dropout=0.05,
+                             kernel_width=32):
+    encoder = Sequential()
+    encoder.add(layers.Conv1D(filters, kernel_width, padding='same',
+                              activation='relu', input_shape=input_shape))
+    encoder.add(layers.BatchNormalization())
+    encoder.add(layers.SpatialDropout1D(dropout))
+    encoder.add(layers.MaxPool1D(4, 4))
+
+    # Further convs
+    encoder.add(layers.Conv1D(2*filters, 3, padding='same', activation='relu'))
+    encoder.add(layers.BatchNormalization())
+    encoder.add(layers.SpatialDropout1D(dropout))
+    encoder.add(layers.MaxPool1D())
+
+    encoder.add(layers.Conv1D(4 * filters, 3, padding='same',
+                              activation='relu'))
+    encoder.add(layers.BatchNormalization())
+    encoder.add(layers.SpatialDropout1D(dropout))
+    encoder.add(layers.MaxPool1D())
+
+    # add Attention across time steps
+    input_1 = layers.Input(input_shape)
+    features = encoder(input_1)
+    features_tatt_seq = layers.Attention()([features, features])
+    features_tatt = layers.GlobalAveragePooling1D()(features_tatt_seq)
+
+    # add Attention across feature maps
+    transposed_features = layers.Permute((2, 1))(features)
+    features_fatt_seq = layers.Attention()([transposed_features,
+                                            transposed_features])
+    features_fatt = layers.GlobalAveragePooling1D()(features_fatt_seq)
+
+    # take maximum values across time of features
+    max_features = layers.GlobalMaxPool1D()(features)
+
+    # concatenate average attention and max features
+    all_features = layers.Concatenate(axis=1)([max_features, features_tatt,
+                                               features_fatt])
+    hfeatures = layers.Dense(embedding_dimension,
+                             activation='relu')(all_features)
+    hfeatures1 = layers.Dense(embedding_dimension,
+                              activation='relu')(hfeatures)
+    output = layers.Dense(num_classes, activation='softmax')(hfeatures1)
+    model = Model(inputs=input_1, outputs=output)
+
+    return model
+
+
 def get_ffnn3hl():
     # hardcoded for siamese with 64 features
     num_features = 64
