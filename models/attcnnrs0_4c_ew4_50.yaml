@@ -7,6 +7,7 @@ decimate: 1
 
 # training parameters
 epochs: 50
+test_percent: 20.0
 num_samples: 0
 
 # model parameters
