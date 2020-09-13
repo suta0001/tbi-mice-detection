@@ -79,7 +79,7 @@ def eval_performance(models_path, config_file, fold):
                                 test_percent=99.9,
                                 val_percent=0,
                                 overlap=config_params['overlap'],
-                                num_samples=config_param['num_samples'])
+                                num_samples=config_params['num_samples'])
 
     # get true and predicted labels
     labels = test_gen.get_labels()
