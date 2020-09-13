@@ -11,25 +11,25 @@ import yaml
 # general setup parameters
 # currently only supports the values below
 target_names = ['Sham', 'TBI']
-decimate_factor = 4
 models_path = 'models'
-config_files = ['cnn1drs0_4c_ew16_50.yaml',
-                'cnn1drs0_4c_ew32_50.yaml',
-                'cnn1drs0_4c_ew64_50.yaml',
-                'cnn1drs1_4c_ew64_50.yaml',
-                'cnn1drs2_4c_ew64_50.yaml',
-                'cnn1drs3_4c_ew64_50.yaml',
-                'cnn1drs4_4c_ew64_50.yaml',
-                'cnn1drs5_4c_ew64_50.yaml',
-                'cnn1drs6_4c_ew64_50.yaml',
-                'cnn1drs7_4c_ew64_50.yaml',
-                'cnn1drs8_4c_ew64_50.yaml',
-                'cnn1drs9_4c_ew64_50.yaml',
-                'cnn1drs10_4c_ew64_50.yaml',
-                'cnn1drs11_4c_ew64_50.yaml',
-                'cnn1drs12_4c_ew64_50.yaml',
-                'cnn1drs13_4c_ew64_50.yaml',
-                'cnn1drs14_4c_ew64_50.yaml']
+# config_files = ['cnn1drs0_4c_ew16_50.yaml',
+#                 'cnn1drs0_4c_ew32_50.yaml',
+#                 'cnn1drs0_4c_ew64_50.yaml',
+#                 'cnn1drs1_4c_ew64_50.yaml',
+#                 'cnn1drs2_4c_ew64_50.yaml',
+#                 'cnn1drs3_4c_ew64_50.yaml',
+#                 'cnn1drs4_4c_ew64_50.yaml',
+#                 'cnn1drs5_4c_ew64_50.yaml',
+#                 'cnn1drs6_4c_ew64_50.yaml',
+#                 'cnn1drs7_4c_ew64_50.yaml',
+#                 'cnn1drs8_4c_ew64_50.yaml',
+#                 'cnn1drs9_4c_ew64_50.yaml',
+#                 'cnn1drs10_4c_ew64_50.yaml',
+#                 'cnn1drs11_4c_ew64_50.yaml',
+#                 'cnn1drs12_4c_ew64_50.yaml',
+#                 'cnn1drs13_4c_ew64_50.yaml',
+#                 'cnn1drs14_4c_ew64_50.yaml']
+config_files = ['cnn1drs16_4c_ew64_50.yaml']
 outfile = 'metrics/cnn1drs_4c_2c_metrics.csv'
 woutfile = 'metrics/cnn1drs_4c_2cw_metrics.csv'
 soutfile = 'metrics/cnn1drs_4c_2cs_metrics.csv'
@@ -79,13 +79,15 @@ def eval_performance(models_path, config_file):
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
     dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
     species_set = dataset_folds[0]
+    decimate_factor = config_params['decimate']
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
     test_gen = dg.DataGenerator(data_path, file_template, species_set,
                                 'test', batch_size, num_classes,
                                 shuffle=False,
                                 decimate=decimate_factor,
                                 test_percent=config_params['test_percent'],
-                                overlap=config_params['overlap'])
+                                overlap=config_params['overlap'],
+                                num_samples=config_params['num_samples'])
 
     # get true and predicted labels
     labels = test_gen.get_labels()
