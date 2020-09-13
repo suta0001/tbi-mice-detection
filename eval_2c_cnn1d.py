@@ -21,9 +21,9 @@ models_path = 'models'
 #                 'cnn1dsa27_4c_ew64_50.yaml',
 #                 'cnn1dsa28_4c_ew64_50.yaml']
 config_files = ['cnn1d10_4c_ew64_50.yaml']
-outfile = 'metrics/cnn1dsa2_4c_2c_metrics.csv'
-woutfile = 'metrics/cnn1dsa2_4c_2cw_metrics.csv'
-soutfile = 'metrics/cnn1dsa2_4c_2cs_metrics.csv'
+outfile = 'metrics/cnn1d_4c_2c_metrics.csv'
+woutfile = 'metrics/cnn1d_4c_2cw_metrics.csv'
+soutfile = 'metrics/cnn1d_4c_2cs_metrics.csv'
 
 
 def process_into_2c(labels):
