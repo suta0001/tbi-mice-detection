@@ -108,11 +108,8 @@ def get_cnn1d_with_attention(num_classes, filters, embedding_dimension,
     # concatenate average attention and max features
     all_features = layers.Concatenate(axis=1)([max_features, features_tatt,
                                                features_fatt])
-    hfeatures = layers.Dense(embedding_dimension,
-                             activation='relu')(all_features)
-    hfeatures1 = layers.Dense(embedding_dimension,
-                              activation='relu')(hfeatures)
-    output = layers.Dense(num_classes, activation='softmax')(hfeatures1)
+    hfeatures = layers.Dense(embedding_dimension)(all_features)
+    output = layers.Dense(num_classes, activation='softmax')(hfeatures)
     model = Model(inputs=input_1, outputs=output)
 
     return model
