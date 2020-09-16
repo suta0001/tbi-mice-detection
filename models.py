@@ -79,36 +79,12 @@ def get_cnn1d_with_attention(num_classes, filters, embedding_dimension,
     encoder.add(layers.MaxPool1D(4, 4))
 
     # Further convs
-    encoder.add(layers.Conv1D(filters, 3, padding='same', activation='relu'))
+    encoder.add(layers.Conv1D(2*filters, 3, padding='same', activation='relu'))
     encoder.add(layers.BatchNormalization())
     encoder.add(layers.SpatialDropout1D(dropout))
     encoder.add(layers.MaxPool1D())
 
-    encoder.add(layers.Conv1D(filters, 3, padding='same',
-                              activation='relu'))
-    encoder.add(layers.BatchNormalization())
-    encoder.add(layers.SpatialDropout1D(dropout))
-    encoder.add(layers.MaxPool1D())
-
-    encoder.add(layers.Conv1D(filters, 3, padding='same',
-                              activation='relu'))
-    encoder.add(layers.BatchNormalization())
-    encoder.add(layers.SpatialDropout1D(dropout))
-    encoder.add(layers.MaxPool1D())
-
-    encoder.add(layers.Conv1D(filters, 3, padding='same',
-                              activation='relu'))
-    encoder.add(layers.BatchNormalization())
-    encoder.add(layers.SpatialDropout1D(dropout))
-    encoder.add(layers.MaxPool1D())
-
-    encoder.add(layers.Conv1D(filters, 3, padding='same',
-                              activation='relu'))
-    encoder.add(layers.BatchNormalization())
-    encoder.add(layers.SpatialDropout1D(dropout))
-    encoder.add(layers.MaxPool1D())
-
-    encoder.add(layers.Conv1D(filters, 3, padding='same',
+    encoder.add(layers.Conv1D(4 * filters, 3, padding='same',
                               activation='relu'))
     encoder.add(layers.BatchNormalization())
     encoder.add(layers.SpatialDropout1D(dropout))
