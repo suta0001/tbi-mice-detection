@@ -1,0 +1,19 @@
+# general setup
+config_name: attcnnrs2
+num_classes: 4
+epoch_width: 64
+overlap: no
+decimate: 4
+
+# training parameters
+epochs: 50
+test_percent: 20.0
+num_samples: 0
+
+# model parameters
+model: attcnn
+kernel_width: 1
+dropout: 0.10
+embedding_dimension: 8
+filters: 128
+
