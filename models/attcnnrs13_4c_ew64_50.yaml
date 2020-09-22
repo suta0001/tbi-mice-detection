@@ -1,5 +1,5 @@
 # general setup
-config_name: attcnnrs12
+config_name: attcnnrs13
 num_classes: 4
 epoch_width: 64
 overlap: no
@@ -15,5 +15,5 @@ model: attcnn
 kernel_width: 1
 dropout: 0.10
 embedding_dimension: 8 
-filters: 8
+filters: 16 
 
