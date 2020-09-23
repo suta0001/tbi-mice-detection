@@ -1,6 +1,7 @@
 import csv
 import datagenerator as dg
 from models import get_baseline_convolutional_encoder
+from models import get_cnn1d_with_attention
 import numpy as np
 import os
 from sklearn.metrics import accuracy_score
@@ -34,6 +35,7 @@ decimate_factor = config_params['decimate']
 filters = config_params['filters']
 embedding_dimension = config_params['embedding_dimension']
 dropout = config_params['dropout']
+kernel_width = int(config_params['kernel_width'] * 256 // decimate_factor)
 num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
 
 # set up training parameters
@@ -50,12 +52,17 @@ file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 
 for fold in range(len(dataset_folds)):
     with tf.device('/cpu:0'):
-        model = get_baseline_convolutional_encoder(filters,
-                                                   embedding_dimension,
-                                                   (num_tsteps, 1),
-                                                   dropout)
-        model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
-
+        # define model
+        if config_params['model'] == 'basecnn':
+            model = get_baseline_convolutional_encoder(filters,
+                                                       embedding_dimension,
+                                                       (num_tsteps, 1),
+                                                       dropout)
+            model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
+        elif config_params['model'] == 'attcnn':
+            model = get_cnn1d_with_attention(num_classes, filters,
+                                             embedding_dimension, (num_tsteps, 1),
+                                             dropout, kernel_width)
         # define optimizers
         optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
         # load previously saved model if requested
@@ -91,9 +98,9 @@ for fold in range(len(dataset_folds)):
         config_params['epochs'],
         str(fold))
     ckpt_best = tf.keras.callbacks.ModelCheckpoint(filepath,
-                                                   monitor='val_acc',
+                                                   monitor='val_loss',
                                                    save_best_only=True,
-                                                   mode='max')
+                                                   mode='min')
     filepath = 'models/{}_{}c_ew{}_{}_{}'.format(
         config_params['config_name'],
         config_params['num_classes'],
