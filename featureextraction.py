@@ -16,6 +16,19 @@ import yaml
 
 
 def calc_distance_features(eeg_epochs, source, model_path):
+    """
+    Calculate distance between extracted features for network trained in a
+    Siamese network.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        source: source Siamese network ('siamesers' for RS data arrangement or
+                'siamese' for SA data arrangement)
+        model_path: path to model configuration YAML file
+
+    Returns:
+        A list of distances to class average embeddings
+    """
     with open(model_path) as cfile:
         config_params = yaml.safe_load(cfile)
     avg_features = np.array(du.read_data('avg_{}_features.csv'.format(source)))
@@ -31,6 +44,21 @@ def calc_distance_features(eeg_epochs, source, model_path):
 
 
 def calc_multiple_features(eeg_epochs, features):
+    """
+    Calculate extracted features based on combination of feature types.
+    Currently, this method only supports combinations of the following
+    extracted features:
+        - permutation entropy (pe)
+        - spectral (spectral)
+        - permutation entropy of DWT decomposition signals (wpe)
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        features: list of features to combine
+
+    Returns:
+        List of extracted features
+    """
     cfeatures = []
     for feature in features:
         if feature == 'pe':
@@ -50,6 +78,18 @@ def calc_multiple_features(eeg_epochs, features):
 
 
 def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
+    """
+    Calculate permutation entropy values EEG epochs. Permutation entropy value
+    are calculated for all combinations of orders and delays values.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        orders: list of permutation entropy orders
+        delays: list of permutation entropy delays
+
+    Returns:
+        List of permutation entropy values
+    """
     features = []
     for eeg_epoch in eeg_epochs:
         feature = []
@@ -61,7 +101,19 @@ def calc_permutation_entropy(eeg_epochs, orders=[3], delays=[1]):
     return features
 
 
-def create_visibility_graphs(eeg_epoch, vis_graph_type='normal'):
+def create_visibility_graph(eeg_epoch, vis_graph_type='normal'):
+    """
+    Create visibility graph of an EEG epoch.
+
+    Args:
+        eeg_epoch: an EEG epoch
+        vis_graph_type: visibility graph type ('normal' for normal visibility
+                        graph, 'horizontal' for horizontal visibility graph,
+                        'difference' for difference visibility graph)
+
+    Returns:
+        Visibility graph
+    """
     vis_graph = None
     if vis_graph_type == 'normal':
         vis_graph = vg.visibility_graph(eeg_epoch)
@@ -75,11 +127,21 @@ def create_visibility_graphs(eeg_epoch, vis_graph_type='normal'):
 
 
 def calc_vg_features(eeg_epochs, max_degree=11):
+    """
+    Calculate extracted features from visibility graphs (vg) of EEG epochs.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        max_degree: maximum number of degrees to use in vg feature extraction
+
+    Returns:
+        List of extracted features.
+    """
     features = []
     for eeg_epoch in eeg_epochs:
         feature = []
-        nvg = create_visibility_graphs(eeg_epoch, 'normal')
-        hvg = create_visibility_graphs(eeg_epoch, 'horizontal')
+        nvg = create_visibility_graph(eeg_epoch, 'normal')
+        hvg = create_visibility_graph(eeg_epoch, 'horizontal')
         dvg = nx.difference(nvg, hvg)
         feature.append(vg.calc_mean_degree(dvg))
         feature.append(vg.calc_mean_degree(hvg))
@@ -89,6 +151,16 @@ def calc_vg_features(eeg_epochs, max_degree=11):
 
 
 def calc_spectral_features(eeg_epochs, fs=256):
+    """
+    Calculate extracted features based on spectral properties of EEG epochs.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        fs: sampling frequency in Hz.
+
+    Returns:
+        List of extracted features.
+    """
     features = []
     # define frequency bands
     eeg_bands = {
@@ -107,7 +179,6 @@ def calc_spectral_features(eeg_epochs, fs=256):
         power = [sa.calc_bandpower(psd, f, eeg_bands[band][0],
                  eeg_bands[band][1]) for band in bands]
         # rel_power = [power[i] / total_power for i in range(len(power))]
-        # feature.extend(power)
         feature.extend(power)
         # feature.append(power[0] / power[1])
         # feature.append(power[0] / power[2])
@@ -140,6 +211,15 @@ def calc_spectral_features(eeg_epochs, fs=256):
 
 
 def calc_time_domain_features(eeg_epochs):
+    """
+    Calculate time-domain extracted features of EEG epochs.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+
+    Returns:
+        List of extracted features.
+    """
     features = []
     for eeg_epoch in eeg_epochs:
         feature = []
@@ -155,6 +235,16 @@ def calc_time_domain_features(eeg_epochs):
 
 
 def calc_wavelet_pe_features(eeg_epochs):
+    """
+    Calculate permutation entropy values of signal components from 
+    DWT-decomposition of EEG epochs.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+
+    Returns:
+        List of extracted features.
+    """
     features = []
     for eeg_epoch in eeg_epochs:
         feature = []
@@ -176,6 +266,18 @@ def calc_wavelet_pe_features(eeg_epochs):
 
 
 def generate_embeddings(eeg_epochs, model_path, fold=0):
+    """
+    Calculate extracted features using a network train in a Siamese network.
+
+    Args:
+        eeg_epochs: list of EEG epochs
+        model_path: path to model configuration YAML file
+        fold: cross-validation fold to use in SA data arrangement (set to 0
+              for RS data arragnement)
+
+    Returns:
+        List of extracted features.
+    """
     # due to tensorflow/keras issue, we cannot load model directly from file
     # so, we are forced to hardcode the model
     with open(model_path) as cfile:
@@ -201,11 +303,6 @@ def generate_embeddings(eeg_epochs, model_path, fold=0):
         model.load_weights(net_model)
         model = model.layers[2]
 
-        if(False):  # set to true to save a combined HDF5 model
-            print("Saving model...")
-            model.save(net_model + "_combined.h5")
-            print("Combined model saved")
-            # model.summary()
     shape = (1, num_tsteps, 1)
     features = []
     for eeg_epoch in eeg_epochs:
@@ -214,6 +311,10 @@ def generate_embeddings(eeg_epochs, model_path, fold=0):
 
 
 def process(eeg_epochs, method):
+    """
+    Lookup table for feature extraction.
+    method defines the feature extraction method to use.
+    """
     if method == 'pe':
         op = calc_permutation_entropy
         kwargs = {'orders': [3, 5, 7], 'delays': [1, 5, 10]}
