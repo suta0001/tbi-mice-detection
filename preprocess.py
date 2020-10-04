@@ -28,6 +28,9 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=4):
 
 def do_bandpass_filter(eeg_epochs, lowcut=0.5, highcut=40, fs=256,
                        order=4):
+    """
+    Apply bandpass filter to EEG epochs.
+    """
     bpf_eeg_epochs = []
     for eeg_epoch in eeg_epochs:
         bpf_eeg_epoch = butter_bandpass_filter(eeg_epoch, lowcut, highcut, fs,
@@ -50,6 +53,9 @@ def butter_lowpass_filter(data, highcut, fs, order=4):
 
 
 def do_lowpass_filter(eeg_epochs, highcut=128, fs=256, order=4):
+    """
+    Apply lowpass filter to EEG epochs.
+    """
     lpf_eeg_epochs = []
     for eeg_epoch in eeg_epochs:
         lpf_eeg_epoch = butter_lowpass_filter(eeg_epoch, highcut, fs,
@@ -59,6 +65,9 @@ def do_lowpass_filter(eeg_epochs, highcut=128, fs=256, order=4):
 
 
 def normalize(values):
+    """
+    Calculate z-score of samples in values.
+    """
     meanv = np.mean(values)
     stdv = np.std(values)
     norm_values = [(value - meanv) / stdv for value in values]
@@ -66,6 +75,10 @@ def normalize(values):
 
 
 def renyi_entropy(time_series):
+    """
+    Renyi entropy with p defined as probability to get permutation of symbol
+    ordering as used in permutation entropy of order 5.
+    """
     order = 5
     x = np.array(time_series)
     hashmult = np.power(order, np.arange(order))
@@ -83,6 +96,12 @@ def renyi_entropy(time_series):
 
 
 def awica(eeg_epoch):
+    """
+    Implementation of AWICA(Automatic Wavelet Independent Component Analysis).
+    See N. Mammone, F. La Foresta, and F. C. Morabito, “Automatic Artifact
+    Rejection From Multichannel Scalp EEG by Wavelet ICA,” IEEE Sens. J., 
+    vol. 12, no. 3, pp. 533–542, Mar. 2012, doi: 10.1109/JSEN.2011.2115236.
+    """
     clean_eeg_epoch = eeg_epoch
     # extract wavelet components (WCs) using DWT
     coeffs = pywt.wavedec(eeg_epoch, 'db4', level=3)
@@ -136,6 +155,9 @@ def awica(eeg_epoch):
 
 
 def do_awica(eeg_epochs):
+    """
+    Apply AWICA on EEG epochs.
+    """
     clean_eeg_epochs = []
     for eeg_epoch in eeg_epochs:
         clean_eeg_epoch = awica(eeg_epoch)
@@ -144,6 +166,9 @@ def do_awica(eeg_epochs):
 
 
 def do_decimate(eeg_epochs, dec_factor=4):
+    """
+    Apply decimation on EEG epochs.
+    """
     dec_eeg_epochs = []
     for eeg_epoch in eeg_epochs:
         dec_eeg_epoch = decimate(eeg_epoch, dec_factor)
@@ -152,6 +177,10 @@ def do_decimate(eeg_epochs, dec_factor=4):
 
 
 def process(eeg_epochs, pp_set='pp4'):
+    """
+    Lookup table for preprocessing step.
+    Sequence of operations are defined as the sequence in ops_set.
+    """
     if pp_set == 'pp1':
         ops_set = [do_bandpass_filter]
         kwargs = {}
