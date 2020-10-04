@@ -66,6 +66,12 @@ def find_horizontal_visible_edges_to_max(graph, series, left, right):
 
 
 def visibility_graph(series):
+    """
+    This is based on
+    X. Lan, H. Mo, S. Chen, Q. Liu, and Y. Deng, “Fast transformation from time
+    series to visibility graphs,” Chaos Interdiscip. J. Nonlinear Sci., 
+    vol. 25, no. 8, p. 083105, Aug. 2015, doi: 10.1063/1.4927835.
+    """
     g = nx.Graph()
 
     # add all the nodes
@@ -103,6 +109,12 @@ def visibility_graph(series):
 
 
 def horizontal_visibility_graph(series):
+    """
+    This is based on
+    X. Lan, H. Mo, S. Chen, Q. Liu, and Y. Deng, “Fast transformation from time
+    series to visibility graphs,” Chaos Interdiscip. J. Nonlinear Sci., 
+    vol. 25, no. 8, p. 083105, Aug. 2015, doi: 10.1063/1.4927835.
+    """
     g = nx.Graph()
 
     # add all the nodes
@@ -140,6 +152,12 @@ def horizontal_visibility_graph(series):
 
     return g
 
+
+# The following methods are used to calculate features as described in
+# G. Zhu, Y. Li, and P. Wen, “Analysis and Classification of Sleep Stages
+# Based on Difference Visibility Graphs From a Single-Channel EEG Signal,”
+# IEEE J. Biomed. Health Inform., vol. 18, no. 6, pp. 1813–1821, Nov. 2014,
+# doi: 10.1109/JBHI.2014.2303991.
 
 def calc_mean_degree(vis_graph):
     sum = 0
