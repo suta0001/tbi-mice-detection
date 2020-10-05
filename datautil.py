@@ -285,6 +285,19 @@ def get_class_label(num_classes, species, stage):
     return label
 
 
+def process_4c_into_2c(labels):
+    """
+    Process 4-class labels into Sham or TBI.
+    """
+    labels_2c = []
+    for label in labels:
+        if label == 0 or label == 1:
+            labels_2c.append(0)
+        elif label == 2 or label == 3:
+            labels_2c.append(1)
+    return labels_2c
+
+
 def read_data(filename):
     dataset = []
     with open(filename, mode='r', newline='') as csvfile:
