@@ -352,7 +352,8 @@ def write_metrics(metrics_path, data_arr, model, num_classes,
 
     Args:
         metrics_path: directory to write the metrics into
-        data_arr: 'sa' for SA or 'rs' for RS -- used in output filename only
+        data_arr: 'sa' for SA, 'rs' for RS, or 'mx' for SA hybrid -- used in
+                  output filename only
         model: classifier model
         num_classes: number of classification target classes
         eeg_epoch_width_in_s: EEG epoch width in seconds
@@ -367,6 +368,10 @@ def write_metrics(metrics_path, data_arr, model, num_classes,
     Returns:
         None
     """
+    # assert value of data_arr
+    assert data_arr in ('rs', 'sa', 'mx'),\
+        'data_arr must be either rs, sa, or mx'
+
     # define file name format
     if overlap:
         outfile = '{}{}_{}c_ew{}_{}_{}_{}_{}.csv'
