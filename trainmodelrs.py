@@ -26,6 +26,8 @@ parser.add_argument('model', default=None,
                     help='machine-learning model')
 parser.add_argument('num_samples', default=0, type=int,
                     help='number of samples (0 = all)')
+parser.add_argument('--process_as_2c', action='store_true',
+                    help='post-process output class as Sham or TBI')
 args = parser.parse_args()
 
 # set up file location paths
@@ -82,10 +84,13 @@ for train_index, test_index in sss.split(epochs, labels):
         clf.fit(train_epochs, train_labels)
 
     # make prediction
-
     predict_labels = clf.predict(test_epochs)
     if args.model == 'ffnn3hl':
         predict_labels = predict_labels.argmax(axis=1)
+    if args.process_as_2c and args.num_classes == 4:
+        test_labels = du.process_4c_into_2c(test_labels)
+        predict_labels = du.process_4c_into_2c(predict_labels)
+
     # calculate accuracy score
     accuracy = accuracy_score(test_labels, predict_labels)
     accuracies.append(accuracy)
@@ -95,7 +100,7 @@ for train_index, test_index in sss.split(epochs, labels):
     print(confusion_matrix(test_labels, predict_labels))
 
     # define class labels
-    if args.num_classes == 2:
+    if args.process_as_2c or args.num_classes == 2:
         target_names = ['Sham', 'TBI']
     elif args.num_classes == 4:
         target_names = ['SW', 'SS', 'TW', 'TS']
@@ -127,4 +132,4 @@ for name in target_names:
 du.write_metrics('metrics', args.model, args.num_classes,
                  args.eeg_epoch_width_in_s, not args.no_overlap,
                  args.num_samples, args.pp_step, args.featgen, target_names,
-                 reports)
+                 reports, args.process_as_2c)
