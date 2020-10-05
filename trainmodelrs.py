@@ -129,7 +129,7 @@ for name in target_names:
     print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
 
 # write to file
-du.write_metrics('metrics', args.model, args.num_classes,
+du.write_metrics('metrics', 'rs', args.model, args.num_classes,
                  args.eeg_epoch_width_in_s, not args.no_overlap,
                  args.num_samples, args.pp_step, args.featgen, target_names,
                  reports, args.process_as_2c)
