@@ -5,6 +5,7 @@ import os
 import random
 import pyedflib
 from sklearn.utils.validation import column_or_1d
+import statistics
 
 
 def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
@@ -18,7 +19,7 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
         pp_step: applied preprocessing step(s)
         featgen: applied feature generator
         species_set: set of species used for the dataset
-        num_samples: number of samples to build
+        num_samples: number of samples to build (0 means all samples)
 
     Returns:
         A list of data epochs and a list of label epochs
@@ -47,7 +48,7 @@ def build_dataset(epochs_path, num_classes, epoch_width_in_s, pp_step, featgen,
     # convert datasets to numpy arrays
     data_epochs = np.array(data_epochs)
     labels = column_or_1d(np.array(labels, dtype=int))
-    if num_samples != 0:
+    if num_samples != 0 and num_samples <= len(labels):
         idx = random.sample(list(range(len(labels))), num_samples)
         data_epochs = data_epochs[idx, :]
         labels = labels[idx]
@@ -327,3 +328,97 @@ def write_data_to_hdf5(filename, group, dataset):
         if group in f.keys():
             del f[group]
         f.create_dataset(group, data=dataset, compression='gzip')
+
+
+def write_metrics(metrics_path, model, num_classes, eeg_epoch_width_in_s,
+                  overlap, num_samples, pp_step, featgen, target_names,
+                  reports):
+    """
+    Write classification metrics to files. target_names must be used to
+    generate reports.
+
+    Args:
+        metrics_path: directory to write the metrics into
+        model: classifier model
+        num_classes: number of classification target classes
+        eeg_epoch_width_in_s: EEG epoch width in seconds
+        overlap: True for overlapping EEG epochs
+        num_samples: number of samples used in training (0 = all samples)
+        pp_step: preprocessing step
+        featgen: feature extraction method
+        target_names: names of target classes
+        reports: list of sklearn.metrics.classification_report
+
+    Returns:
+        None
+    """
+    # define file name format
+    if overlap:
+        outfile = '{}rs_{}c_ew{}_{}_{}_{}_metrics.csv'
+        moutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_avg_metrics.csv'
+        soutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_std_metrics.csv'
+    else:
+        outfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_metrics.csv'
+        moutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_avg_metrics.csv'
+        soutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_std_metrics.csv'
+    outfile = outfile.format(model, num_classes, eeg_epoch_width_in_s,
+                             pp_step, featgen, num_samples)
+    moutfile = moutfile.format(model, num_classes, eeg_epoch_width_in_s,
+                               pp_step, featgen, num_samples)
+    soutfile = soutfile.format(model, num_classes, eeg_epoch_width_in_s,
+                               pp_step, featgen, num_samples)
+
+    # define output files
+    outfile = os.path.join(metrics_path, outfile)
+    moutfile = os.path.join(metrics_path, moutfile)
+    soutfile = os.path.join(metrics_path, soutfile)
+
+    metrics = ['precision', 'recall', 'f1-score', 'support']
+    outputs = []
+    # fold data
+    # form array of header labels and add to outputs
+    header_labels = ['fold', 'accuracy']
+    for label in target_names:
+        for metric in metrics:
+            header_labels.append('{}_{}'.format(label, metric))
+    outputs.append(header_labels)
+
+    # form array of metric values and add to outputs
+    for i in range(len(reports)):
+        metric_values = [i, reports[i]['accuracy']]
+        for label in target_names:
+            for metric in metrics:
+                metric_values.append(reports[i][label][metric])
+        outputs.append(metric_values)
+    write_data(outfile, outputs)
+
+    # summary data
+    # form array of header labels and add to outputs
+    moutputs = []
+    soutputs = []
+    header_labels = ['model', 'num_classes', 'epoch_width', 'overlap',
+                     'num_samples', 'preprocess', 'feat', 'accuracy']
+    for label in target_names:
+        for metric in metrics:
+            header_labels.append('{}_{}'.format(label, metric))
+    moutputs.append(header_labels)
+    soutputs.append(header_labels)
+    # form array of metric values and add to outputs
+    if num_samples == 0:
+        num_samples = 'all'
+    accuracies = [reports[i]['accuracy'] for i in range(len(reports))]
+    mmetric_values = [model, num_classes, eeg_epoch_width_in_s,
+                      overlap, num_samples, pp_step, featgen,
+                      statistics.mean(accuracies)]
+    smetric_values = [model, num_classes, eeg_epoch_width_in_s,
+                      overlap, num_samples, pp_step, featgen,
+                      statistics.stdev(accuracies)]
+    for label in target_names:
+        for metric in metrics:
+            values = [reports[i][label][metric] for i in range(len(reports))]
+            mmetric_values.append(statistics.mean(values))
+            smetric_values.append(statistics.stdev(values))
+    moutputs.append(mmetric_values)
+    soutputs.append(smetric_values)
+    write_data(moutfile, moutputs)
+    write_data(soutfile, soutputs)
