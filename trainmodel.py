@@ -42,20 +42,20 @@ accuracies = []
 reports = []
 template = None
 common_labels = None
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds3.txt')]
+dataset_folds = [line.rstrip().split(',') for line in open('cv_folds4.txt')]
 for fold, dataset_fold in enumerate(dataset_folds):
     train_epochs, train_labels = du.build_dataset(epochs_path,
                                                   args.num_classes,
                                                   args.eeg_epoch_width_in_s,
                                                   args.pp_step,
                                                   args.featgen,
-                                                  dataset_fold[0:9])
+                                                  dataset_fold[0:7])
     test_epochs, test_labels = du.build_dataset(epochs_path,
                                                 args.num_classes,
                                                 args.eeg_epoch_width_in_s,
                                                 args.pp_step,
                                                 args.featgen,
-                                                dataset_fold[9:])
+                                                dataset_fold[7:])
     # if using normalized spectral feature, transform spectral powers into
     # normalized decibel values
     if 'spectral' in args.featgen:
@@ -63,7 +63,7 @@ for fold, dataset_fold in enumerate(dataset_folds):
                                                      args.num_classes,
                                                      args.eeg_epoch_width_in_s,
                                                      args.pp_step,
-                                                     dataset_fold[0:9])
+                                                     dataset_fold[0:7])
         train_epochs = du.decibel_normalize(args.featgen, baselines,
                                             train_epochs, train_labels)
         test_epochs = du.decibel_normalize(args.featgen, baselines,
@@ -131,5 +131,5 @@ for name in target_names:
 # write to file
 du.write_metrics('metrics', 'sa', args.model, args.num_classes,
                  args.eeg_epoch_width_in_s, not args.no_overlap,
-                 args.num_samples, args.pp_step, args.featgen, target_names,
+                 0, args.pp_step, args.featgen, target_names,
                  reports, args.process_as_2c)

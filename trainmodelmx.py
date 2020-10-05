@@ -127,5 +127,5 @@ for name in target_names:
 # write to file
 du.write_metrics('metrics', 'mx', args.model, args.num_classes,
                  args.eeg_epoch_width_in_s, not args.no_overlap,
-                 args.num_samples, args.pp_step, args.featgen, target_names,
+                 0, args.pp_step, args.featgen, target_names,
                  reports, args.process_as_2c)
