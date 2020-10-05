@@ -23,6 +23,8 @@ parser.add_argument('featgen', default=None,
 parser.add_argument('model', default=None,
                     choices=['ffnn3hl', 'knn', 'rf', 'xgb'],
                     help='machine-learning model')
+parser.add_argument('--process_as_2c', action='store_true',
+                    help='post-process output class as Sham or TBI')
 args = parser.parse_args()
 
 # set up file location paths
@@ -82,6 +84,10 @@ for fold, dataset_fold in enumerate(dataset_folds):
     predict_labels = clf.predict(test_epochs)
     if args.model == 'ffnn3hl':
         predict_labels = predict_labels.argmax(axis=1)
+    if args.process_as_2c and args.num_classes == 4:
+        test_labels = du.process_4c_into_2c(test_labels)
+        predict_labels = du.process_4c_into_2c(predict_labels)
+    
     # calculate accuracy score
     accuracy = accuracy_score(test_labels, predict_labels)
     accuracies.append(accuracy)
@@ -91,7 +97,7 @@ for fold, dataset_fold in enumerate(dataset_folds):
     print(confusion_matrix(test_labels, predict_labels))
 
     # define class labels
-    if args.num_classes == 2:
+    if args.process_as_2c or args.num_classes == 2:
         target_names = ['Sham', 'TBI']
     elif args.num_classes == 4:
         target_names = ['SW', 'SS', 'TW', 'TS']
@@ -119,58 +125,7 @@ for name in target_names:
     print('Stdev recll ' + name + ' = ' + str(statistics.stdev(recalls)))
 
 # write to file
-outfile = 'metrics/{}mx_{}c_ew{}_{}_{}_metrics.csv'
-moutfile = 'metrics/{}mx_{}c_ew{}_{}_{}_avg_metrics.csv'
-soutfile = 'metrics/{}mx_{}c_ew{}_{}_{}_std_metrics.csv'
-outfile = outfile.format(args.model, args.num_classes,
-                         args.eeg_epoch_width_in_s, args.pp_step, args.featgen)
-moutfile = moutfile.format(args.model, args.num_classes,
-                           args.eeg_epoch_width_in_s, args.pp_step,
-                           args.featgen)
-soutfile = soutfile.format(args.model, args.num_classes,
-                           args.eeg_epoch_width_in_s, args.pp_step,
-                           args.featgen)
-metrics = ['precision', 'recall', 'f1-score', 'support']
-outputs = []
-# form array of header labels and add to outputs
-header_labels = ['fold', 'accuracy']
-for label in target_names:
-    for metric in metrics:
-        header_labels.append('{}_{}'.format(label, metric))
-outputs.append(header_labels)
-# form array of metric values and add to outputs
-for i in range(len(dataset_folds)):
-    metric_values = [i, reports[i]['accuracy']]
-    for label in target_names:
-        for metric in metrics:
-            metric_values.append(reports[i][label][metric])
-    outputs.append(metric_values)
-du.write_data(outfile, outputs)
-
-# summary data
-# form array of header labels and add to outputs
-moutputs = []
-soutputs = []
-header_labels = ['model', 'num_classes', 'epoch_width', 'overlap',
-                 'num_samples', 'preprocess', 'feat', 'accuracy']
-for label in target_names:
-    for metric in metrics:
-        header_labels.append('{}_{}'.format(label, metric))
-moutputs.append(header_labels)
-soutputs.append(header_labels)
-# form array of metric values and add to outputs
-mmetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
-                  'mixed', 'all', args.pp_step, args.featgen,
-                  statistics.mean(accuracies)]
-smetric_values = [args.model, args.num_classes, args.eeg_epoch_width_in_s,
-                  'mixed', 'all', args.pp_step, args.featgen,
-                  statistics.stdev(accuracies)]
-for label in target_names:
-    for metric in metrics:
-        values = [reports[i][label][metric] for i in range(len(reports))]
-        mmetric_values.append(statistics.mean(values))
-        smetric_values.append(statistics.stdev(values))
-moutputs.append(mmetric_values)
-soutputs.append(smetric_values)
-du.write_data(moutfile, moutputs)
-du.write_data(soutfile, soutputs)
+du.write_metrics('metrics', 'mx', args.model, args.num_classes,
+                 args.eeg_epoch_width_in_s, not args.no_overlap,
+                 args.num_samples, args.pp_step, args.featgen, target_names,
+                 reports, args.process_as_2c)
