@@ -343,15 +343,16 @@ def write_data_to_hdf5(filename, group, dataset):
         f.create_dataset(group, data=dataset, compression='gzip')
 
 
-def write_metrics(metrics_path, model, num_classes, eeg_epoch_width_in_s,
-                  overlap, num_samples, pp_step, featgen, target_names,
-                  reports, do_2c_metrics=False):
+def write_metrics(metrics_path, data_arr, model, num_classes,
+                  eeg_epoch_width_in_s, overlap, num_samples, pp_step, featgen,
+                  target_names, reports, do_2c_metrics=False):
     """
     Write classification metrics to files. target_names must be used to
     generate reports.
 
     Args:
         metrics_path: directory to write the metrics into
+        data_arr: 'sa' for SA or 'rs' for RS -- used in output filename only
         model: classifier model
         num_classes: number of classification target classes
         eeg_epoch_width_in_s: EEG epoch width in seconds
@@ -368,23 +369,24 @@ def write_metrics(metrics_path, model, num_classes, eeg_epoch_width_in_s,
     """
     # define file name format
     if overlap:
-        outfile = '{}rs_{}c_ew{}_{}_{}_{}_{}.csv'
-        moutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_avg_{}.csv'
-        soutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_std_{}.csv'
+        outfile = '{}{}_{}c_ew{}_{}_{}_{}_{}.csv'
+        moutfile = '{}{}_novl_{}c_ew{}_{}_{}_{}_avg_{}.csv'
+        soutfile = '{}{}_novl_{}c_ew{}_{}_{}_{}_std_{}.csv'
     else:
-        outfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_{}.csv'
-        moutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_avg_{}.csv'
-        soutfile = '{}rs_novl_{}c_ew{}_{}_{}_{}_std_{}.csv'
+        outfile = '{}{}_novl_{}c_ew{}_{}_{}_{}_{}.csv'
+        moutfile = '{}{}_novl_{}c_ew{}_{}_{}_{}_avg_{}.csv'
+        soutfile = '{}{}_novl_{}c_ew{}_{}_{}_{}_std_{}.csv'
     # define filename ending prefix
     if do_2c_metrics:
         end_prefix = "2c_metrics"
     else:
         end_prefix = "metrics"
-    outfile = outfile.format(model, num_classes, eeg_epoch_width_in_s,
-                             pp_step, featgen, num_samples, end_prefix)
-    moutfile = moutfile.format(model, num_classes, eeg_epoch_width_in_s,
+    outfile = outfile.format(model, data_arr, num_classes,
+                             eeg_epoch_width_in_s, pp_step, featgen,
+                             num_samples, end_prefix)
+    moutfile = moutfile.format(model, data_arr, num_classes, eeg_epoch_width_in_s,
                                pp_step, featgen, num_samples, end_prefix)
-    soutfile = soutfile.format(model, num_classes, eeg_epoch_width_in_s,
+    soutfile = soutfile.format(model, data_arr, num_classes, eeg_epoch_width_in_s,
                                pp_step, featgen, num_samples, end_prefix)
 
     # define output files
