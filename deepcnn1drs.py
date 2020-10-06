@@ -7,38 +7,33 @@ import os
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
-from sklearn.preprocessing import StandardScaler
 import statistics
 import sys
 import tensorflow as tf
-from time import time
 import yaml
 
-
-# parameters to be varied
-eeg_epoch_width_in_s = int(sys.argv[2])
-eeg_source = sys.argv[1]
-num_classes = int(sys.argv[3])
-target_names = ['SW', 'SS', 'TW', 'TS']
-
-# set up model and training parameters from file
+"""Train Deep CNN (Random Sampling version)"""
+# set up model and training parameters
 models_path = 'models/'
-config_file = '{0}.yaml'.format(sys.argv[4])
+config_file = '{0}.yaml'.format(sys.argv[1])
 with open(models_path + config_file) as cfile:
     config_params = yaml.safe_load(cfile)
+eeg_source = 'eeg'  # use raw EEG epochs
+eeg_epoch_width_in_s = config_params['epoch_width']
+num_classes = config_params['num_classes']
+target_names = ['SW', 'SS', 'TW', 'TS']
+decimate_factor = config_params['decimate']
 accuracies = []
 reports = []
 
 # setup the model
-# model is from https://github.com/oscarknagg/voicemap
-decimate_factor = config_params['decimate']
 filters = config_params['filters']
 embedding_dimension = config_params['embedding_dimension']
 dropout = config_params['dropout']
 num_tsteps = eeg_epoch_width_in_s * 1024 // (4 * decimate_factor)
-kernel_width = int(config_params['kernel_width'] * 256 // decimate_factor)
 with tf.device('/cpu:0'):
     # define model
+    # 2 models are supported: base Deep CNN and Deep CNN with Attention
     if config_params['model'] == 'basecnn':
         model = get_baseline_convolutional_encoder(filters,
                                                    embedding_dimension,
@@ -46,18 +41,22 @@ with tf.device('/cpu:0'):
                                                    dropout)
         model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
     elif config_params['model'] == 'attcnn':
+        kernel_width = int(config_params['kernel_width'] * 256 //
+                           decimate_factor)
         model = get_cnn1d_with_attention(num_classes, filters,
                                          embedding_dimension, (num_tsteps, 1),
                                          dropout, kernel_width)
     # define optimizers
     optimizer = tf.keras.optimizers.Adam(clipnorm=1.0)
     # load previously saved model if requested
-    if len(sys.argv) == 6:
-        print('loading previous model = ', sys.argv[5])
-        model.load_weights(sys.argv[5])
+    if len(sys.argv) == 3:
+        print('loading previous model = ', sys.argv[2])
+        model.load_weights(sys.argv[2])
 
 # compile the model
+# uncomment line below if using multiple GPUs for training
 # pmodel = tf.keras.utils.multi_gpu_model(model, gpus=2)
+# comment line below if using multiple GPUs for training
 pmodel = model
 pmodel.compile(optimizer=optimizer,
                loss='sparse_categorical_crossentropy',
@@ -80,14 +79,15 @@ tensorboard.log_dir = log_dir
 # tensorboard.batch_size = batch_size
 # tensorboard.update_freq = 'epoch'
 
-dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
+dataset_folds = [line.rstrip().split(',') for line in
+                 open('cv_folds.txt')]
 if config_params['overlap']:
     data_path = 'data/epochs_{}c'.format(str(num_classes))
 else:
     data_path = 'data/epochs_novl_{}c'.format(str(num_classes))
 file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
 for fold in range(1):
-    # set up checkpoints
+    # set up checkpoint for best model
     filepath = 'models/{}_{}c_ew{}_{}_{}_best.h5'.format(
         config_params['config_name'],
         config_params['num_classes'],
@@ -98,6 +98,7 @@ for fold in range(1):
                                                    monitor='val_loss',
                                                    save_best_only=True,
                                                    mode='min')
+    # set up regular checkpoint for training
     filepath = 'models/{}_{}c_ew{}_{}_{}'.format(
         config_params['config_name'],
         config_params['num_classes'],
