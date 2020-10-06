@@ -40,7 +40,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.file_template = file_template
         self.species_set = species_set
         assert purpose in ('train', 'test', 'validation'),\
-            'purpose must be either train or test'
+            'purpose must be either train or validation or test'
         self.purpose = purpose
         self.decimate = decimate
         assert test_percent >= 0 and test_percent <= 100,\
@@ -65,7 +65,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         else:
             self.num_samples = num_samples
         assert batch_size <= self.num_samples,\
-            'Batch size must be <= number of (train or test) samples'
+            'Batch size must be <= number of samples'
         self.batch_size = batch_size
 
         # read from existing index file for generated samples
@@ -188,8 +188,11 @@ class DataGenerator(tf.keras.utils.Sequence):
                 df_test_index = list(range(curr_test_index,
                                            curr_test_index +
                                            num_test_samples))
+                # sindex, which was randomly shuffled, represents epochs in
+                # HDF5 files
                 sindex = indexes[:num_train_samples]
                 if len(sindex) != 0:
+                    # store training set
                     store.append('data_index/train',
                                  pd.DataFrame({'species': species,
                                                'stage': stage,
@@ -203,6 +206,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                 sindex = indexes[num_train_samples:num_train_samples +
                                  num_val_samples]
                 if len(sindex) != 0:
+                    # store validation set
                     store.append('data_index/validation',
                                  pd.DataFrame({'species': species,
                                                'stage': stage,
@@ -215,6 +219,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                 curr_val_index += num_val_samples
                 sindex = indexes[num_train_samples + num_val_samples:]
                 if len(sindex) != 0:
+                    # store testing set
                     store.append('data_index/test',
                                  pd.DataFrame({'species': species,
                                                'stage': stage,
