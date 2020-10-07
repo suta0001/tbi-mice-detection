@@ -10,6 +10,7 @@ epochs: 50
 num_samples: 0
 
 # model parameters
+kernel_width = 1
 dropout: 0.10
 embedding_dimension: 8
 filters: 128
