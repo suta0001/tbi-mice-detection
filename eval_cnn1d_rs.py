@@ -6,27 +6,25 @@ from sklearn.metrics import classification_report
 import yaml
 
 
-"""Evaluate performance of trained Deep CNN1D
-   (Random Sampling version)"""
+"""Evaluate performance of trained Deep CNN1D (Random Sampling version)
+   Prerequisite:
+   - cv_folds.txt
+   - data_*.h5 generated during training must exist,
+     otherwise evaluation results are not correct.
+   - EEG epochs (.h5 files) in data/epochs_novl_4c
+   - models/*.yaml
+   - models/*_best.h5
+   Output:
+   - defined in outfile
+"""
 # general setup parameters
 # currently only supports the values below
 target_names = ['SW', 'SS', 'TW', 'TS']
 models_path = 'models'
-config_files = ['cnn1drs17_4c_ew4_50.yaml',
-                'cnn1drs17_4c_ew8_50.yaml',
-                'cnn1drs17_4c_ew16_50.yaml',
-                'cnn1drs17_4c_ew32_50.yaml',
-                'cnn1drs18_4c_ew4_50.yaml',
-                'cnn1drs18_4c_ew8_50.yaml',
-                'cnn1drs18_4c_ew16_50.yaml',
-                'cnn1drs18_4c_ew32_50.yaml',
-                'cnn1drs19_4c_ew4_50.yaml',
-                'cnn1drs19_4c_ew8_50.yaml',
-                'cnn1drs19_4c_ew16_50.yaml',
-                'cnn1drs19_4c_ew32_50.yaml']
-# config_files = ['cnn1drs13_4c_ew64_50.yaml',
-#                 'cnn1drs14_4c_ew64_50.yaml']
-outfile = 'cnn1drs_4c_metrics.csv'
+# add configs to be evaluated to config_files
+config_files = ['cnn1drs0_4c_ew64_50.yaml',
+                'cnn1drs1_4c_ew64_50.yaml']
+outfile = 'metrics/attcnnrs_4c_metrics.csv'
 
 
 def eval_performance(models_path, config_file):
@@ -48,7 +46,8 @@ def eval_performance(models_path, config_file):
 
     # define the test set
     file_template = '{}_BL5_' + 'ew{}.h5'.format(str(eeg_epoch_width_in_s))
-    dataset_folds = [line.rstrip().split(',') for line in open('cv_folds.txt')]
+    dataset_folds = [line.rstrip().split(',') for line in
+                     open('cv_folds.txt')]
     species_set = dataset_folds[0]
     decimate_factor = config_params['decimate']
     batch_size = 1024 * 4 * decimate_factor // eeg_epoch_width_in_s
